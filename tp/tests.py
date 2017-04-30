@@ -52,7 +52,8 @@ class ApiTests(TestCase):
         response = client.post("/trips/",
                                data=json.dumps({"destination": "Amsterdam",
                                                 "start_date": "2017-04-20",
-                                                "end_date": "2017-05-01"}),
+                                                "end_date": "2017-05-01",
+                                                "comment": "too many bicycles"}),
                                content_type="application/json"
                                )
         # this should fail (401) because "Authentication credentials were not provided"
@@ -63,7 +64,8 @@ class ApiTests(TestCase):
         response = client.post("/trips/",
                                data=json.dumps({"destination": "Amsterdam",
                                                 "start_date": "2017-04-02",
-                                                "end_date": "2017-05-01"}),
+                                                "end_date": "2017-05-01",
+                                                "comment": "too many bicycles"}),
                                content_type="application/json",
                                HTTP_AUTHORIZATION="JWT " + token)
         print(response.content)
@@ -72,7 +74,7 @@ class ApiTests(TestCase):
         print("The trips:")
         for trip in Trip.objects.all():
             some_trip = trip
-            print(trip.destination, trip.start_date, trip.end_date, trip.user)
+            print(trip.destination, trip.start_date, trip.end_date, trip.comment, trip.user)
 
         self.assertGreater(len(Trip.objects.all()), 0, "There should be at least one object")
 
@@ -81,7 +83,8 @@ class ApiTests(TestCase):
         response = client.put("/trips/"+str(some_trip.id)+"/",
                                data=json.dumps({"destination": "Paris",
                                                 "start_date": "2017-04-02",
-                                                "end_date": "2017-05-01"}),
+                                                "end_date": "2017-05-01",
+                                                "comment": "too many tourists"}),
                                content_type="application/json",
                                HTTP_AUTHORIZATION="JWT " + token)
         print(response.status_code)
@@ -90,5 +93,5 @@ class ApiTests(TestCase):
 
         print("Trips after puts:")
         for trip in Trip.objects.all():
-            print(trip.destination, trip.start_date, trip.end_date, trip.user)
+            print(trip.destination, trip.start_date, trip.end_date, trip.comment, trip.user)
 
