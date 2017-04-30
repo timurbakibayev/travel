@@ -10,6 +10,12 @@ class Trip(models.Model):
     start_date = models.DateField(verbose_name="Start Date")
     end_date = models.DateField(verbose_name="End Date")
 
+    def save(self, *args, **kwargs):
+        if self.start_date > self.end_date:
+            pass
+        else:
+            super(Trip, self).save(*args, **kwargs)
+
     def __str__(self):
         return self.destination
 
@@ -27,3 +33,5 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ["entry_date"]
+
+# TODO: Make user a required field (remove null=True)
