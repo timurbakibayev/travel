@@ -2,8 +2,8 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
-from travel import urls
 from django.contrib.auth.models import Group
+from rest_framework import routers, serializers, viewsets
 from tp.serializers import *
 # Create your views here.
 
@@ -20,7 +20,7 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'name')
 
 
-class UserViewSet(urls.viewsets.ModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
@@ -28,7 +28,7 @@ class UserViewSet(urls.viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
 
-class GroupViewSet(urls.viewsets.ModelViewSet):
+class GroupViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
     """
