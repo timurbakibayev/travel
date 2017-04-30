@@ -1,16 +1,9 @@
-from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view
 from rest_framework import status
-from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from travel import urls
-from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
-from rest_framework import routers, serializers, viewsets
-from tp.models import *
 from tp.serializers import *
 # Create your views here.
 
@@ -45,6 +38,7 @@ class GroupViewSet(urls.viewsets.ModelViewSet):
 
 @api_view(['GET', 'POST'])
 def trip_list(request):
+    print(request.method)
     if request.method == 'GET':
         trips = Trip.objects.all()
         serializer = TripSerializer(trips, many=True)
@@ -54,9 +48,10 @@ def trip_list(request):
         data = JSONParser().parse(request)
         serializer = TripSerializer(data=data)
         if serializer.is_valid():
-            serializers.user = request.user
-            serializer.save()
+            print("trying to put user", request.user)
+            serializer.save(user_id=request.user.id)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print("Bad request", data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -92,7 +87,10 @@ def comment_list(request):
         return Response(serializer.data)
 
     elif request.method == 'POST':
+        print("Comment post request")
+        print(request.POST)
         data = JSONParser().parse(request)
+        print("data", data)
         serializer = CommentSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
