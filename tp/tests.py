@@ -13,12 +13,7 @@ class TripTests(TestCase):
         t.start_date = "2017-01-01"
         t.end_date = "2017-04-01"
         t.save()
-        c = Comment()
-        c.trip = t
-        c.text = "Some comment"
-        c.save()
         self.assertIsNot(t.entry_date, None)
-        self.assertIsNot(c.entry_date, None)
 
     def test_start_date_later_than_end_date(self):
         t = Trip()
@@ -36,7 +31,7 @@ class TripTests(TestCase):
 
 
 class ApiTests(TestCase):
-    def test_api_auth_and_trip_comment_post(self):
+    def test_api_auth_and_trip_post(self):
         client = Client()
         response = client.get("/")
         print(response)
@@ -74,30 +69,12 @@ class ApiTests(TestCase):
         print(response.content)
         self.assertEqual(response.status_code, 201, "The trip should be successfully created")
 
-        response = client.post("/comments/",
-                               data=json.dumps({"trip": 1,
-                                                "text": "Automated comment one"}),
-                               content_type="application/json",
-                               HTTP_AUTHORIZATION="JWT " + token)
-        self.assertEqual(response.status_code, 201, "The comment should be successfully created")
-
-        response = client.post("/comments/",
-                               data=json.dumps({"trip": 1,
-                                                "text": "Automated comment two"}),
-                               content_type="application/json",
-                               HTTP_AUTHORIZATION="JWT " + token)
-        self.assertEqual(response.status_code, 201, "The comment should be successfully created")
-
-        print("Trips and comments:")
+        print("The trips:")
         for trip in Trip.objects.all():
             some_trip = trip
             print(trip.destination, trip.start_date, trip.end_date, trip.user)
-            for comment in trip.comment_set.all():
-                print("   c:",comment.id, "text", comment.text)
-                some_comment = comment
 
         self.assertGreater(len(Trip.objects.all()), 0, "There should be at least one object")
-        self.assertGreater(len(Comment.objects.all()), 0, "There should be at least one comment")
 
         # ------------------------ Now try API PUT
 
@@ -111,18 +88,7 @@ class ApiTests(TestCase):
         print(response.content)
         self.assertEqual(response.status_code, 200, "The trip should be successfully changed")
 
-        response = client.put("/comments/"+str(some_comment.id)+"/",
-                               data=json.dumps({"trip": some_comment.trip_id,
-                                                "text": "Automated comment changed by PUT"}),
-                               content_type="application/json",
-                               HTTP_AUTHORIZATION="JWT " + token)
-        print(response.status_code)
-        print(response.content)
-        self.assertEqual(response.status_code, 200, "The comment should be successfully changed")
-
-        print("Trips and comments after puts:")
+        print("Trips after puts:")
         for trip in Trip.objects.all():
             print(trip.destination, trip.start_date, trip.end_date, trip.user)
-            for comment in trip.comment_set.all():
-                print("   c:", comment.id, "text", comment.text)
 
