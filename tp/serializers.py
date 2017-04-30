@@ -3,25 +3,16 @@ from tp.models import *
 
 
 class TripSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Trip
-        fields = ('id', 'destination', 'start_date', 'end_date')
+        fields = ('id', 'user', 'destination', 'entry_date', 'start_date', 'end_date')
+        # extra_kwargs = {'id': {'required': False}}
 
 
-class TripSerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True)
-    destination =  serializers.CharField(max_length=1000)
-    entry_date = serializers.DateField()
-    start_date = serializers.DateField()
-    end_date = serializers.DateField()
+class CommentSerializer(serializers.ModelSerializer):
 
-    def create(self, validated_data):
-        return Trip.objects.create(**validated_data)
+    class Meta:
+        model = Comment
+        fields = ('id', 'entry_date', 'text', 'trip')
 
-    def update(self, instance, validated_data):
-        instance.destination = validated_data.get('destination', instance.destination)
-        instance.entry_date = validated_data.get('entry_date', instance.entry_date)
-        instance.start_date = validated_data.get('start_date', instance.start_date)
-        instance.end_date = validated_data.get('end_date', instance.end_date)
-        instance.save()
-        return instance
