@@ -21,9 +21,9 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^admin/', admin.site.urls),
-    url(r'^auth/', obtain_jwt_token),
-    url(r'^auth/verify/', verify_jwt_token),
-    url(r'^auth/refresh/', refresh_jwt_token),
+    url(r'^auth/$', obtain_jwt_token),
+    url(r'^auth/verify/$', verify_jwt_token),
+    url(r'^auth/refresh/$', refresh_jwt_token),
     url(r'^trips/$', views.trip_list),
     url(r'^comments/$', views.comment_list),
     url(r'^comments/(?P<pk>[0-9]+)/$', views.comment_detail),

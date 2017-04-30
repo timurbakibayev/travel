@@ -1,11 +1,9 @@
 from rest_framework.decorators import api_view
 from rest_framework import status
-from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from django.contrib.auth.models import Group
-from rest_framework import routers, serializers, viewsets
+from rest_framework import viewsets
 from tp.serializers import *
-# Create your views here.
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -21,37 +19,27 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows users to be viewed or edited.
-    """
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
 
 
 class GroupViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows groups to be viewed or edited.
-    """
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
 
 
 @api_view(['GET', 'POST'])
 def trip_list(request):
-    print(request.method)
     if request.method == 'GET':
         trips = Trip.objects.all()
         serializer = TripSerializer(trips, many=True)
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        serializer = TripSerializer(data=data)
+        serializer = TripSerializer(data=request.data)
         if serializer.is_valid():
-            print("trying to put user", request.user)
             serializer.save(user_id=request.user.id)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        print("Bad request", data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -67,8 +55,7 @@ def trip_detail(request, pk):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        data = JSONParser().parse(request)
-        serializer = TripSerializer(trip, data=data)
+        serializer = TripSerializer(trip, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -87,11 +74,7 @@ def comment_list(request):
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        print("Comment post request")
-        print(request.POST)
-        data = JSONParser().parse(request)
-        print("data", data)
-        serializer = CommentSerializer(data=data)
+        serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -110,8 +93,7 @@ def comment_detail(request, pk):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        data = JSONParser().parse(request)
-        serializer = CommentSerializer(comment, data=data)
+        serializer = CommentSerializer(comment, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
