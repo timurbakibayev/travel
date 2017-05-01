@@ -30,6 +30,8 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 @api_view(['GET', 'POST'])
 def trip_list(request):
+    filter_fields = ('start_date', 'end_date', 'comment', 'destination')
+
     if request.method == 'GET':
         user = request.user
         if len(user.groups.filter(name="admin")) != 1:

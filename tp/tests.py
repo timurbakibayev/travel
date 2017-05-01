@@ -84,23 +84,31 @@ class ApiTests(TestCase):
                                HTTP_AUTHORIZATION="JWT " + tokens["billgates"])
         self.assertEqual(response.status_code, 201, "The trip should be successfully created")
 
-        for trip in Trip.objects.all():
-            some_trip = trip
-            self.assertEqual(trip.destination, "Amsterdam")
-            self.assertEqual(trip.start_date, datetime.date(2017, 4, 2))
-            self.assertEqual(trip.end_date, datetime.date(2017, 5, 1))
-            self.assertEqual(trip.comment, "too many bicycles")
+        response = client.post("/trips/",
+                               data=json.dumps({"destination": "New York",
+                                                "start_date": "2017-07-02",
+                                                "end_date": "2017-08-01",
+                                                "comment": "planning in July"}),
+                               content_type="application/json",
+                               HTTP_AUTHORIZATION="JWT " + tokens["billgates"])
+        self.assertEqual(response.status_code, 201, "The trip should be successfully created")
+
+        some_trip = Trip.objects.filter(destination="Amsterdam")[0]
+        self.assertEqual(some_trip.destination, "Amsterdam")
+        self.assertEqual(some_trip.start_date, datetime.date(2017, 4, 2))
+        self.assertEqual(some_trip.end_date, datetime.date(2017, 5, 1))
+        self.assertEqual(some_trip.comment, "too many bicycles")
 
         self.assertGreater(len(Trip.objects.all()), 0, "There should be at least one object")
 
         # Now try API PUT
         response = client.put("/trips/"+str(some_trip.id)+"/",
-                               data=json.dumps({"destination": "Paris",
-                                                "start_date": "2017-04-02",
-                                                "end_date": "2017-05-01",
-                                                "comment": "too many tourists"}),
-                               content_type="application/json",
-                               HTTP_AUTHORIZATION="JWT " + tokens["billgates"])
+                              data=json.dumps({"destination": "Paris",
+                                               "start_date": "2017-04-02",
+                                               "end_date": "2017-05-01",
+                                               "comment": "too many tourists"}),
+                              content_type="application/json",
+                              HTTP_AUTHORIZATION="JWT " + tokens["billgates"])
         self.assertEqual(response.status_code, 200, "The trip should be successfully changed")
         trip = Trip.objects.get(pk=some_trip.id)
         self.assertEqual(trip.destination, "Paris")
@@ -111,7 +119,7 @@ class ApiTests(TestCase):
         # Now that we have something in our DB, try get some data with GET
         response = client.get("/trips/", HTTP_AUTHORIZATION="JWT " + tokens["billgates"])
         result = json.loads(response.content.decode("UTF-8"), "UTF-8")
-        self.assertEqual(len(result), 1, "this user has one record")
+        self.assertEqual(len(result), 2, "this user has one record")
 
         response = client.get("/trips/", HTTP_AUTHORIZATION="JWT " + tokens["stieve"])
         result = json.loads(response.content.decode("UTF-8"), "UTF-8")
@@ -119,5 +127,9 @@ class ApiTests(TestCase):
 
         response = client.get("/trips/", HTTP_AUTHORIZATION="JWT " + tokens["admin"])
         result = json.loads(response.content.decode("UTF-8"), "UTF-8")
-        self.assertEqual(len(result), 1, "admin should see all records!")
+        self.assertEqual(len(result), Trip.objects.count(), "admin should see all records!")
+
+        response = client.get("/trips/?search=paris", HTTP_AUTHORIZATION="JWT " + tokens["billgates"])
+        result = json.loads(response.content.decode("UTF-8"), "UTF-8")
+        self.assertEqual(len(result), 1, "one trip with Paris")
 

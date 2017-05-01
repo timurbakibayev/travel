@@ -1,5 +1,8 @@
 Django==1.11
+django-crispy-forms==1.6.1
+django-filter==1.0.2
 djangorestframework==3.6.2
 djangorestframework-jwt==1.10.0
+psycopg2==2.7.1
 PyJWT==1.5.0
 pytz==2017.2
