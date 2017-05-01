@@ -31,7 +31,11 @@ class GroupViewSet(viewsets.ModelViewSet):
 @api_view(['GET', 'POST'])
 def trip_list(request):
     if request.method == 'GET':
-        trips = Trip.objects.all()
+        user = request.user
+        if len(user.groups.filter(name="admin")) != 1:
+            trips = Trip.objects.filter(user=user)
+        else:
+            trips = Trip.objects.all()
         serializer = TripSerializer(trips, many=True)
         return Response(serializer.data)
 

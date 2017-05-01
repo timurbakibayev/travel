@@ -1,8 +1,8 @@
+from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.test import Client
 import datetime
 import json
-from .models import *
 from .serializers import *
 # Create your tests here.
 
@@ -34,18 +34,37 @@ class TripTests(TestCase):
 class ApiTests(TestCase):
     def test_api_auth_and_trip_post(self):
         client = Client()
-        response = client.get("/")
-        self.admin = User.objects.create_user('test_admin', 'admin@test.com', 'pass')
-        self.admin.save()
-        self.admin.is_staff = True
-        self.admin.save()
+
+        admin_group = Group(name='admin')
+        admin_group.save()
+        manager_group = Group(name='manager')
+        manager_group.save()
+
+        admin = User.objects.create_user('test_admin', 'admin@test.com', 'pass')
+        admin.is_staff = True
+        admin.groups.add(admin_group)
+        admin.save()
 
         # Getting token:
+        tokens = {}
         response = client.post("/auth/",
                                data=json.dumps({'username': 'test_admin', 'password': 'pass'}),
                                content_type="application/json")
         self.assertEqual(response.status_code, 200, "We should get the token!")
-        token = json.loads(response.content.decode("UTF-8"), "UTF-8")["token"]
+        tokens["admin"] = json.loads(response.content.decode("UTF-8"), "UTF-8")["token"]
+
+        regular_users = [("billgates", "bill"), ("stieve", "st1111"), ("samsung", "samsung12345678")]
+        for user in regular_users:
+            username, password = user
+            self.user_1 = User.objects.create_user(username, username+'@gmail.com', password)
+            self.user_1.is_staff = False
+            self.user_1.save()
+            response = client.post("/auth/",
+                                   data=json.dumps({'username': username, 'password': password}),
+                                   content_type="application/json")
+            self.assertEqual(response.status_code, 200, "We should get the token!")
+            tokens[username] = json.loads(response.content.decode("UTF-8"), "UTF-8")["token"]
+
         # Trying to create a new Trip:
         response = client.post("/trips/",
                                data=json.dumps({"destination": "Amsterdam",
@@ -54,15 +73,15 @@ class ApiTests(TestCase):
                                                 "comment": "too many bicycles"}),
                                content_type="application/json"
                                )
-        # this should fail (401) because "Authentication credentials were not provided"
         self.assertEqual(response.status_code, 401, "Authentication credentials were not provided")
+
         response = client.post("/trips/",
                                data=json.dumps({"destination": "Amsterdam",
                                                 "start_date": "2017-04-02",
                                                 "end_date": "2017-05-01",
                                                 "comment": "too many bicycles"}),
                                content_type="application/json",
-                               HTTP_AUTHORIZATION="JWT " + token)
+                               HTTP_AUTHORIZATION="JWT " + tokens["billgates"])
         self.assertEqual(response.status_code, 201, "The trip should be successfully created")
 
         for trip in Trip.objects.all():
@@ -75,18 +94,30 @@ class ApiTests(TestCase):
         self.assertGreater(len(Trip.objects.all()), 0, "There should be at least one object")
 
         # Now try API PUT
-
         response = client.put("/trips/"+str(some_trip.id)+"/",
                                data=json.dumps({"destination": "Paris",
                                                 "start_date": "2017-04-02",
                                                 "end_date": "2017-05-01",
                                                 "comment": "too many tourists"}),
                                content_type="application/json",
-                               HTTP_AUTHORIZATION="JWT " + token)
+                               HTTP_AUTHORIZATION="JWT " + tokens["billgates"])
         self.assertEqual(response.status_code, 200, "The trip should be successfully changed")
         trip = Trip.objects.get(pk=some_trip.id)
         self.assertEqual(trip.destination, "Paris")
         self.assertEqual(trip.start_date, datetime.date(2017, 4, 2))
         self.assertEqual(trip.end_date, datetime.date(2017, 5, 1))
         self.assertEqual(trip.comment, "too many tourists")
+
+        # Now that we have something in our DB, try get some data with GET
+        response = client.get("/trips/", HTTP_AUTHORIZATION="JWT " + tokens["billgates"])
+        result = json.loads(response.content.decode("UTF-8"), "UTF-8")
+        self.assertEqual(len(result), 1, "this user has one record")
+
+        response = client.get("/trips/", HTTP_AUTHORIZATION="JWT " + tokens["stieve"])
+        result = json.loads(response.content.decode("UTF-8"), "UTF-8")
+        self.assertEqual(len(result), 0, "this user has no records!")
+
+        response = client.get("/trips/", HTTP_AUTHORIZATION="JWT " + tokens["admin"])
+        result = json.loads(response.content.decode("UTF-8"), "UTF-8")
+        self.assertEqual(len(result), 1, "admin should see all records!")
 
