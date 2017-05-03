@@ -16,11 +16,6 @@ class GroupViewSet(viewsets.ModelViewSet):
     serializer_class = GroupSerializer
 
 
-class TripViewSet(viewsets.ModelViewSet):
-    queryset = Trip.objects.all()
-    serializer_class = TripSerializer
-
-
 @api_view(['GET', 'POST'])
 def trip_list(request):
     if request.method == 'GET':

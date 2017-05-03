@@ -4,6 +4,8 @@ from rest_framework_jwt.views import verify_jwt_token
 from django.conf.urls import url, include
 from rest_framework import routers, serializers, viewsets
 from tp import views
+from django.conf.urls import url
+from django.contrib import admin
 
 
 # Serializers define the API representation.
@@ -13,11 +15,7 @@ from tp import views
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
-router.register(r'trips', views.TripViewSet)
 
-
-from django.conf.urls import url
-from django.contrib import admin
 
 urlpatterns = [
     url(r'^', include(router.urls)),

@@ -93,7 +93,7 @@ class ApiTests(TestCase):
         # Now that we have something in our DB, try get some data with GET
         response = client.get("/trips/", HTTP_AUTHORIZATION="JWT " + tokens["billgates"])
         result = json.loads(response.content.decode("UTF-8"), "UTF-8")
-        self.assertEqual(len(result), 2, "this user has one record")
+        self.assertEqual(len(result), 2, "this user has two records")
 
         response = client.get("/trips/", HTTP_AUTHORIZATION="JWT " + tokens["stieve"])
         result = json.loads(response.content.decode("UTF-8"), "UTF-8")

@@ -6,7 +6,7 @@ from django.contrib.auth.models import Group
 class TripSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trip
-        fields = ('url', 'id', 'user', 'destination', 'entry_date', 'start_date', 'end_date', 'comment')
+        fields = ('id', 'user', 'destination', 'entry_date', 'start_date', 'end_date', 'comment')
         read_only_fields = ('id', 'entry_date', 'user')
 
 
@@ -20,3 +20,4 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Group
         fields = ('url', 'name')
+
