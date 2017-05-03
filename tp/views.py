@@ -1,21 +1,9 @@
 from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.response import Response
-from django.contrib.auth.models import Group
 from rest_framework import viewsets
 from tp.serializers import *
-
-
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ('url', 'username', 'email', 'is_staff')
-
-
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Group
-        fields = ('url', 'name')
+from django.db.models import Q
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -28,16 +16,29 @@ class GroupViewSet(viewsets.ModelViewSet):
     serializer_class = GroupSerializer
 
 
+class TripViewSet(viewsets.ModelViewSet):
+    queryset = Trip.objects.all()
+    serializer_class = TripSerializer
+
+
 @api_view(['GET', 'POST'])
 def trip_list(request):
-    filter_fields = ('start_date', 'end_date', 'comment', 'destination')
-
     if request.method == 'GET':
         user = request.user
         if len(user.groups.filter(name="admin")) != 1:
             trips = Trip.objects.filter(user=user)
         else:
             trips = Trip.objects.all()
+        if request.GET.get("search"):
+            txt = request.GET.get("search")
+            for word in txt.lower().split():
+                trips = trips.filter(Q(comment__contains=word) | Q(destination__contains=word))
+        if request.GET.get("from"):
+            date_from = request.GET.get("from").strip()
+            trips = trips.filter(end_date__gte=date_from)
+        if request.GET.get("till"):
+            date_till = request.GET.get("till").strip()
+            trips = trips.filter(start_date__lte=date_till)
         serializer = TripSerializer(trips, many=True)
         return Response(serializer.data)
 

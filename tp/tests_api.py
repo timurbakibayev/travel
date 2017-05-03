@@ -1,34 +1,8 @@
-from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.test import Client
 import datetime
 import json
 from .serializers import *
-# Create your tests here.
-
-
-class TripTests(TestCase):
-    def test_creating_trip(self):
-        t = Trip()
-        t.destination = "Heidelberg"
-        t.start_date = "2017-01-01"
-        t.end_date = "2017-04-01"
-        t.save()
-        self.assertIsNot(t.entry_date, None)
-
-    def test_start_date_later_than_end_date(self):
-        t = Trip()
-        t.destination = "New York"
-        t.start_date = "2017-01-01"
-        t.end_date = "2016-12-30"
-        t.save()
-        self.assertIs(t.id, None)
-
-    def test_serializers(self):
-        ts = TripSerializer(data={"destination": "London",
-                                  "start_date": "2017-01-10",
-                                  "end_date": "2017-01-30"})
-        self.assertIs(ts.is_valid(), True)
 
 
 class ApiTests(TestCase):
@@ -128,8 +102,4 @@ class ApiTests(TestCase):
         response = client.get("/trips/", HTTP_AUTHORIZATION="JWT " + tokens["admin"])
         result = json.loads(response.content.decode("UTF-8"), "UTF-8")
         self.assertEqual(len(result), Trip.objects.count(), "admin should see all records!")
-
-        response = client.get("/trips/?search=paris", HTTP_AUTHORIZATION="JWT " + tokens["billgates"])
-        result = json.loads(response.content.decode("UTF-8"), "UTF-8")
-        self.assertEqual(len(result), 1, "one trip with Paris")
 

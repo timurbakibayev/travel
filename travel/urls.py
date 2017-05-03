@@ -13,6 +13,7 @@ from tp import views
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
+router.register(r'trips', views.TripViewSet)
 
 
 from django.conf.urls import url
