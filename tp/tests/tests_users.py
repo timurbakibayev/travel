@@ -27,7 +27,7 @@ class ApiTests(TestCase):
         self.assertEqual(response.status_code, 200, "We should get the token!")
         tokens["admin"] = json.loads(response.content.decode("UTF-8"), "UTF-8")["token"]
 
-        regular_users = [("billgates", "bill"), ("stieve", "st1111"), ("samsung", "samsung12345678")]
+        regular_users = [("billgates", "bill"), ("steve", "st1111"), ("samsung", "samsung12345678")]
         for user in regular_users:
             username, password = user
             self.user_1 = User.objects.create_user(username, username+'@gmail.com', password)
@@ -68,7 +68,7 @@ class ApiTests(TestCase):
         user_list = json.loads(response.content.decode("UTF-8"), "UTF-8")["results"]
         self.assertEqual(len(user_list), 1, "Bill Gates user only")
 
-        a_user = User.objects.filter(username="stieve")[0]
+        a_user = User.objects.filter(username="steve")[0]
         response = client.put("/users/" + str(a_user.id) + "/",
                               data=json.dumps({"username": "test_api_4"}),
                               HTTP_AUTHORIZATION="JWT " + tokens["billgates"],
@@ -90,14 +90,19 @@ class ApiTests(TestCase):
         response = client.get("/grant_manager/" + str(a_user.id) + "/",
                               HTTP_AUTHORIZATION="JWT " + tokens["admin"],
                               content_type="application/json")
+        self.assertEqual(response.status_code, 200, "Admin may grant manager privelege")
 
         response = client.get("/ungrant_manager/" + str(a_user.id) + "/",
                               HTTP_AUTHORIZATION="JWT " + tokens["billgates"],
                               content_type="application/json")
-        print(response.status_code)
-        print(response.content)
+        self.assertEqual(response.status_code, 401, "But Bill Gates may not change manager privelege")
 
+        a_user = User.objects.filter(username="steve")[0]
+        self.assertEqual(a_user.groups.all()[0].name, "manager")
 
-
-
-
+        # now Steve should be able to see all users
+        response = client.get("/users/",
+                              HTTP_AUTHORIZATION="JWT " + tokens["steve"],
+                              content_type="application/json")
+        user_list = json.loads(response.content.decode("UTF-8"), "UTF-8")["results"]
+        self.assertEqual(len(user_list), 4, "All four users")
