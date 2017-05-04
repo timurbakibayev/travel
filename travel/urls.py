@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^auth/refresh/$', refresh_jwt_token),
     url(r'^grant_manager/(?P<pk>[0-9]+)/$', views.grant_manager),
     url(r'^ungrant_manager/(?P<pk>[0-9]+)/$', views.ungrant_manager),
+    url(r'^travel_plan/$', views.travel_plan),
     url(r'^trips/$', views.trip_list),
     url(r'^trips/(?P<pk>[0-9]+)/$', views.trip_detail),
 ]

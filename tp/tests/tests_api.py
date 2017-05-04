@@ -27,7 +27,7 @@ class ApiTests(TestCase):
         self.assertEqual(response.status_code, 200, "We should get the token!")
         tokens["admin"] = json.loads(response.content.decode("UTF-8"), "UTF-8")["token"]
 
-        regular_users = [("billgates", "bill"), ("stieve", "st1111"), ("samsung", "samsung12345678")]
+        regular_users = [("billgates", "bill"), ("steve", "st1111"), ("samsung", "samsung12345678")]
         for user in regular_users:
             username, password = user
             self.user_1 = User.objects.create_user(username, username+'@gmail.com', password)
@@ -95,7 +95,7 @@ class ApiTests(TestCase):
         result = json.loads(response.content.decode("UTF-8"), "UTF-8")
         self.assertEqual(len(result), 2, "this user has two records")
 
-        response = client.get("/trips/", HTTP_AUTHORIZATION="JWT " + tokens["stieve"])
+        response = client.get("/trips/", HTTP_AUTHORIZATION="JWT " + tokens["steve"])
         result = json.loads(response.content.decode("UTF-8"), "UTF-8")
         self.assertEqual(len(result), 0, "this user has no records!")
 

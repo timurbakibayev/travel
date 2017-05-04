@@ -89,6 +89,12 @@ def trip_detail(request, pk):
     except Trip.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
+    user = request.user
+    if user is None:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+    if len(user.groups.filter(name="admin")) != 1 and trip.user != user:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+
     if request.method == 'GET':
         serializer = TripSerializer(trip)
         return Response(serializer.data)
@@ -133,3 +139,26 @@ def ungrant_manager(request, pk):
         return Response(status=status.HTTP_200_OK)
     else:
         return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+
+@api_view(['GET'])
+def travel_plan(request):
+    if request.method == 'GET':
+        user = request.user
+        if user is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        trips = Trip.objects.filter(user=user)
+        today = date.today()
+        next_year = today.year
+        next_month = today.month + 1
+        if next_month > 12:
+            next_month = 1
+            next_year += 1
+        trips = trips.filter(start_date__gte=date(next_year, next_month, 1))
+        next_month = next_month + 1
+        if next_month > 12:
+            next_month = 1
+            next_year += 1
+        trips = trips.filter(start_date__lt=date(next_year, next_month, 1))
+        serializer = TripSerializer(trips, many=True)
+        return Response(serializer.data)
