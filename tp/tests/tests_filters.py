@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.test import Client
 import datetime
 import json
-from .serializers import *
+from tp.serializers import *
 # Create your tests here.
 
 

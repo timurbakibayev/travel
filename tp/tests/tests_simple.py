@@ -1,5 +1,5 @@
 from django.test import TestCase
-from .serializers import *
+from tp.serializers import *
 
 
 class TripTests(TestCase):

@@ -20,7 +20,7 @@ class TripSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
-        fields = ('url', 'username', 'email', 'is_staff')
+        fields = ('url', 'username', 'email')
 
 
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
