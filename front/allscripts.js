@@ -260,3 +260,19 @@ function saveChanges() {
       console.log("Sending",sendObject);
       xhr.send(sendObject);
 }
+
+function getNextMonth() {
+      var token=localStorage.getItem('token');
+      var url = "http://localhost:8000/travel_plan/";
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.setRequestHeader("Authorization", "JWT " + token);
+      xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+      xhr.addEventListener('load', function() {
+          var data = JSON.parse(this.response);
+            console.log(data);
+            console.log(this.status);
+            alert(data);
+      });
+      xhr.send(null);
+}

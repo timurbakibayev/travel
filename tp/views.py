@@ -1,8 +1,11 @@
 from rest_framework.decorators import api_view
 from rest_framework import status, permissions
 from rest_framework.response import Response
+from dateutil.relativedelta import relativedelta
 from rest_framework import viewsets
-from tp.serializers import *
+from tp.serializers import TripSerializer
+from tp.models import Trip
+from datetime import datetime
 from django.db.models import Q
 
 
@@ -71,17 +74,9 @@ def travel_plan(request):
         if user is None:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         trips = Trip.objects.filter(user=user)
-        today = date.today()
-        next_year = today.year
-        next_month = today.month + 1
-        if next_month > 12:
-            next_month = 1
-            next_year += 1
-        trips = trips.filter(start_date__gte=date(next_year, next_month, 1))
-        next_month = next_month + 1
-        if next_month > 12:
-            next_month = 1
-            next_year += 1
-        trips = trips.filter(start_date__lt=date(next_year, next_month, 1))
+        today = datetime.now()
+        trips = trips.filter(start_date__gte=today)
+        trips = trips.filter(start_date__lt=today + relativedelta(months=1))
+        print(today, today + relativedelta(months=1))
         serializer = TripSerializer(trips, many=True)
         return Response(serializer.data)
