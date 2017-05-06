@@ -1,9 +1,9 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status, permissions
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import viewsets
 from tp.serializers import *
-from django.db.models import Q
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -82,3 +82,20 @@ def ungrant_manager(request, pk):
     else:
         return Response(status=status.HTTP_401_UNAUTHORIZED)
 
+
+@api_view(['POST'])
+@permission_classes((AllowAny, ))
+def register(request):
+    if request.method == 'POST':
+        print(request.data)
+        try:
+            username = request.data["username"]
+            password = request.data["password"]
+            new_user = User()
+            new_user.username = username
+            new_user.set_password(password)
+            new_user.save()
+            return Response(status=status.HTTP_201_CREATED)
+        except Exception as e:
+            print(e)
+            return Response(status=status.HTTP_204_NO_CONTENT)

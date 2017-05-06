@@ -21,6 +21,7 @@ router.register(r'groups', user_views.GroupViewSet)
 urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^admin/', admin.site.urls),
+    url(r'^register/$', user_views.register),
     url(r'^auth/$', obtain_jwt_token),
     url(r'^auth/verify/$', verify_jwt_token),
     url(r'^auth/refresh/$', refresh_jwt_token),
