@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Travel Manager</title>
+  <title>Travel Planner</title>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
@@ -19,13 +19,13 @@
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
                     <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
                 </button>
-                <a class="navbar-brand page-scroll" style="color: #2b542c;" href="#">Travel Manager</a>
+                <a class="navbar-brand page-scroll" style="color: #2b542c;" href="#">Travel Planner</a>
             </div>
 
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav navbar-right">
                     <li>
-                        <a class="page-scroll" onclick="getTrips()" style="color: #2b542c;" href="#">Get Trips</a>
+                        <a class="page-scroll" onclick="getTrips()" style="color: #2b542c;" href="#">Manage users</a>
                     </li>
                     <li>
                         <a id="login_button" class="page-scroll" data-toggle="modal" data-target="#myModal" style="color: #2b542c; visibility: hidden" href="#">Login</a>
@@ -39,26 +39,37 @@
     </nav>
 
 	<div style="margin-left: 5%; margin-right: 5%; margin-top: 70px">
+        <form id="filter_form" style="zoom: 0.7">
+            <div class="input-group">
+                <input type="text" id="filter_text" onchange="getTrips()" class="form-control" placeholder="Search">
+                <span class="input-group-addon"> </span>
+                <input type="date" id="filter_from" onchange="getTrips()" class="form-control">
+                <span class="input-group-addon">-</span>
+                <input type="date" id="filter_to"  onchange="getTrips()" class="form-control">
+                <span class="input-group-addon"> </span>
+                <input type="submit" class="form-control" id="submit_new_trip" value="Filter!">
+            </div>
+        </form>
+  <div id="result" style="height: 400px; overflow-y: scroll;">Trips not loaded</div>
 
-  <div id="result" >Trips not loaded</div>
   </div>
     <div style="margin-left: 5%; margin-right: 5%; margin-top: 20px; margin-bottom: 40px">
         <form name="form_new_trip" id="form_new_trip">
             <div class="input-group">
-                <input type="text" name="new_destination" id="new_destination" tabindex="1" class="form-control" placeholder="New Destination">
+                <input type="text" name="new_destination" id="new_destination" class="form-control" placeholder="New Destination">
                 <span class="input-group-addon"> </span>
-                <input type="date" name="new_start_date" id="new_start_date" tabindex="2" class="form-control">
+                <input type="date" name="new_start_date" id="new_start_date" class="form-control">
                 <span class="input-group-addon">-</span>
-                <input type="date" name="new_end_date" id="new_end_date" tabindex="3" class="form-control">
+                <input type="date" name="new_end_date" id="new_end_date"  class="form-control">
                 <span class="input-group-addon"> </span>
-                <input type="text" name="new_comment" id="new_comment" tabindex="4" class="form-control" placeholder="Some comment">
+                <input type="text" name="new_comment" id="new_comment" class="form-control" placeholder="Some comment">
                 <span class="input-group-addon"> </span>
                 <input type="submit" class="form-control" name="submit_new_trip" id="submit_new_trip" value="GO!">
             </div>
         </form>
     </div>
 
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal fade" id="myModal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="container" style="margin-top: 20px">
         <div class="row">
             <div class="col-md-6 col-md-offset-3">
@@ -79,30 +90,30 @@
 							<div class="col-lg-12">
 								<form id="login-form" method="post" role="form" style="display: block;">
 									<div class="form-group">
-										<input type="text" name="username" id="username" tabindex="1" class="form-control" placeholder="Username" value="">
+										<input type="text" name="username" id="username"  class="form-control" placeholder="Username" value="">
 									</div>
 									<div class="form-group">
-										<input type="password" name="password" id="password" tabindex="2" class="form-control" placeholder="Password">
+										<input type="password" name="password" id="password"  class="form-control" placeholder="Password">
 									</div>
 									<div class="form-group">
 										<div class="row">
 											<div class="col-sm-6 col-sm-offset-3">
-												<input type="submit" name="login-submit" id="login-submit" tabindex="4" class="form-control btn btn-login" value="Login">
+												<input type="submit" name="login-submit" id="login-submit" class="form-control btn btn-login" value="Login">
 											</div>
 										</div>
 									</div>
 								</form>
 								<form id="register-form" method="post" role="form" style="display: none;">
                                     <div class="form-group">
-										<input type="text" name="reg_username" id="reg_username" tabindex="1" class="form-control" placeholder="Username" value="">
+										<input type="text" name="reg_username" id="reg_username" class="form-control" placeholder="Username" value="">
 									</div>
 									<div class="form-group">
-										<input type="password" name="reg_password" id="reg_password" tabindex="2" class="form-control" placeholder="Password">
+										<input type="password" name="reg_password" id="reg_password" class="form-control" placeholder="Password">
 									</div>
 									<div class="form-group">
 										<div class="row">
 											<div class="col-sm-6 col-sm-offset-3">
-												<input type="submit" name="register-submit" id="register-submit" tabindex="4" class="form-control btn btn-register" value="Register">
+												<input type="submit" name="register-submit" id="register-submit" class="form-control btn btn-register" value="Register">
 											</div>
 										</div>
 									</div>
@@ -116,32 +127,34 @@
         </div>
     </div>
 
-    <div class="modal fade" id="editModalForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal fade" id="editModalForm" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                      <h4 class="modal-title" id="edit_modal_header">Edit</h4>
                 </div>
+                <form id="edit_trip_form">
                 <div class="modal-body">
                     <div class="input-group">
                         <label for="edit_destination">Destination</label>
-                        <input type="text" name="edit_destination" id="edit_destination" tabindex="1" class="form-control" placeholder="New Destination">
+                        <input type="text" name="edit_destination" id="edit_destination" class="form-control" placeholder="New Destination">
                     </div><div class="input-group">
                         <label for="edit_start_date">Start Date</label>
-                        <input type="date" name="edit_start_date" id="edit_start_date" tabindex="2" class="form-control">
+                        <input type="date" name="edit_start_date" id="edit_start_date" class="form-control">
                     </div><div class="input-group">
                         <label for="edit_end_date">End Date</label>
-                        <input type="date" name="edit_end_date" id="edit_end_date" tabindex="3" class="form-control">
+                        <input type="date" name="edit_end_date" id="edit_end_date" class="form-control">
                     </div><div class="input-group">
                         <label for="edit_comment">Comment</label>
-                        <input type="text" name="edit_comment" id="edit_comment" tabindex="4" class="form-control" placeholder="Some comment">
+                        <input type="text" name="edit_comment" id="edit_comment" class="form-control" placeholder="Some comment">
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" onclick="saveChanges()" class="btn btn-primary">Save changes</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
                 </div>
+                    </form>
             </div>
             <!-- /.modal-content -->
         </div>
@@ -179,6 +192,14 @@
             });
             $("#form_new_trip").submit(function(event) {
                 newTrip(event);
+                event.preventDefault();
+            });
+            $("#edit_trip_form").submit(function(event) {
+                saveChanges();
+                event.preventDefault();
+            });
+            $("#filter_form").submit(function(event) {
+                getTrips();
                 event.preventDefault();
             });
         }

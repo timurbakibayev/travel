@@ -1,3 +1,19 @@
+@-webkit-keyframes changed {
+  from { background-color: green; }
+  to { background-color: inherit; }
+}
+@-moz-keyframes changed {
+  from { background-color: green; }
+  to { background-color: inherit; }
+}
+@-o-keyframes changed {
+  from { background-color: green; }
+  to { background-color: inherit; }
+}
+@keyframes changed {
+  from { background-color: green; }
+  to { background-color: inherit; }
+}
 body {
         }
         .panel-login {
@@ -96,4 +112,10 @@ body {
             background-color: #1CA347;
             border-color: #1CA347;
         }
-	}
+
+.changed {
+  -webkit-animation: changed 1s ; /* Safari 4+ */
+  -moz-animation:    changed 1s ; /* Fx 5+ */
+  -o-animation:      changed 1s ; /* Opera 12+ */
+  animation:         changed 1s ; /* IE 10+ */
+}

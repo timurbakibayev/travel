@@ -91,7 +91,29 @@ function logout() {
 function getTrips() {
   var token=localStorage.getItem('token');
   var user=localStorage.getItem('username');
-  var url = "http://localhost:8000/trips/"
+  var url = "http://localhost:8000/trips/";
+  var filter = "";
+  var searchFilter = $('#filter_text').val();
+  if (searchFilter != "") {
+      filter = "?search=" + searchFilter;
+  }
+  var fromFilter = $('#filter_from').val();
+  if (fromFilter != "") {
+      if (filter!="")
+          filter+="&";
+      else
+          filter="?"
+      filter += "from=" + fromFilter;
+  }
+  var toFilter = $('#filter_to').val();
+  if (toFilter != "") {
+      if (filter!="")
+          filter+="&";
+      else
+          filter="?"
+      filter += "till=" + toFilter;
+  }
+  url += filter;
   var xhr = new XMLHttpRequest();
   var resultElement = document.getElementById('result');
   xhr.open('GET', url, true);
@@ -117,7 +139,10 @@ function getTrips() {
         var r = new Array(), j = -1;
         for (var key = 0, size = data.length; key < size; key++) {
             console.log(data[key]["destination"])
-            r[++j] = '<tr>';
+            if (data[key]["id"] == window.editTripId)
+                r[++j] = '<tr class="changed">';
+            else
+                r[++j] = '<tr>';
             r[++j] = '<td>' + data[key]["destination"].replace(/<(?:.|\n)*?>/gm, '') + "</td>";
             r[++j] = '<td>' + data[key]["start_date"] + "</td>";
             r[++j] = '<td>' + data[key]["end_date"] + "</td>";
@@ -148,10 +173,11 @@ function newTrip() {
     var data = JSON.parse(this.response);
     console.log(data);
     if (this.status == 201) {
+        window.editTripId = data["id"];
         getTrips();
         document.getElementById('form_new_trip').reset();
     } else {
-        alert("There's some problem with your input.")
+        alert("Please, fill in all trip details. Only comments are not required.")
     }
   });
   var sendObject = JSON.stringify({destination: destinationElement.value,
@@ -174,6 +200,7 @@ function deleteTrip(id, destination){
       xhr.setRequestHeader("Authorization", "JWT " + token);
       xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
       xhr.addEventListener('load', function () {
+          window.editTripId = "-1";
           getTrips();
       });
       xhr.send(null);
