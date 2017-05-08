@@ -17,14 +17,17 @@ class TripSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'entry_date', 'user')
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ('url', 'username', 'email')
-
-
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Group
         fields = ('url', 'name')
+
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    gr = GroupSerializer(source='groups', many=True, required=False, read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('url', 'id', 'username', 'email', 'gr')
+
 

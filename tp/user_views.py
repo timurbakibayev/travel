@@ -7,6 +7,7 @@ from tp.serializers import *
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    pagination_class = None
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
     permission_classes = (permissions.AllowAny,)
@@ -14,18 +15,19 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if len(user.groups.filter(name="admin")) > 0 or \
-                len(user.groups.filter(name="manager")) > 0 or \
+                        len(user.groups.filter(name="manager")) > 0 or \
                 user.is_superuser:
             queryset_list = User.objects.all().order_by('-date_joined')
         else:
             queryset_list = User.objects.filter(username=user.username).order_by('-date_joined')
+
         return queryset_list
 
     def perform_update(self, serializer):
         user = self.request.user
         if len(user.groups.filter(name="admin")) > 0 or \
-           len(user.groups.filter(name="manager")) > 0 or \
-           user.is_superuser:
+                        len(user.groups.filter(name="manager")) > 0 or \
+                user.is_superuser:
             instance = serializer.save()
             return instance
 
@@ -37,7 +39,7 @@ class GroupViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if len(user.groups.filter(name="admin")) > 0 or \
-                len(user.groups.filter(name="manager")) > 0 or \
+                        len(user.groups.filter(name="manager")) > 0 or \
                 user.is_superuser:
             queryset_list = Group.objects.all().order_by('name')
         else:
@@ -47,8 +49,8 @@ class GroupViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         user = self.request.user
         if len(user.groups.filter(name="admin")) > 0 or \
-           len(user.groups.filter(name="manager")) > 0 or \
-           user.is_superuser:
+                        len(user.groups.filter(name="manager")) > 0 or \
+                user.is_superuser:
             instance = serializer.save()
             return instance
 
@@ -69,7 +71,7 @@ def grant_manager(request, pk):
 
 
 @api_view(['GET'])
-def ungrant_manager(request, pk):
+def revoke_manager(request, pk):
     try:
         user = User.objects.get(pk=pk)
         manager = Group.objects.filter(name="manager")[0]
@@ -84,7 +86,7 @@ def ungrant_manager(request, pk):
 
 
 @api_view(['POST'])
-@permission_classes((AllowAny, ))
+@permission_classes((AllowAny,))
 def register(request):
     if request.method == 'POST':
         print(request.data)
@@ -99,3 +101,20 @@ def register(request):
         except Exception as e:
             print(e)
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['PUT'])
+def set_password(request, pk):
+    try:
+        user = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    if len(request.user.groups.filter(name="admin")) == 0 and len(request.user.groups.filter(name="manager")) == 0 and \
+            request.user != user:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+    if len(user.groups.filter(name="admin")) > 0 and request.user != user:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+    password = request.data["password"]
+    user.set_password(password)
+    user.save()
+    return Response(status=status.HTTP_200_OK)

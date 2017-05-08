@@ -38,26 +38,26 @@
         </div>
     </nav>
 
-<ul class="nav nav-tabs" style="margin-top: 70px">
-  <li class="active"><a href="#">Home</a></li>
-  <li><a href="#">Menu 1</a></li>
-  <li><a href="#">Menu 2</a></li>
-  <li><a href="#">Menu 3</a></li>
-</ul>
-
-	<div style="margin-left: 5%; margin-right: 5%; margin-top: 70px">
+ <ul class="nav nav-tabs" role="tablist" style="margin-top: 80px; margin-left: 5%; margin-right: 5%; zoom: 0.7">
+    <li role="presentation" class="active"><a href="#trips" aria-controls="trips" role="tab" data-toggle="tab">Trips</a></li>
+    <li role="presentation"><a href="#profiles" aria-controls="profiles" role="tab" data-toggle="tab">Users</a></li>
+    <li role="presentation"><a href="#next_month" aria-controls="messages" role="tab" data-toggle="tab">Next month</a></li>
+  </ul>
+  <div class="tab-content">
+  <div role="tabpanel" class="tab-pane active" id="trips">
+	<div style="margin-left: 5%; margin-right: 5%; margin-top: 10px">
         <form id="filter_form" style="zoom: 0.7">
             <div class="input-group">
-                <input type="text" id="filter_text" onchange="getTrips()" class="form-control" placeholder="Search">
+                <input type="text" id="filter_text" onchange="load_all()" class="form-control" placeholder="Search">
                 <span class="input-group-addon"> </span>
-                <input type="date" id="filter_from" onchange="getTrips()" class="form-control">
+                <input type="date" id="filter_from" onchange="load_all()" class="form-control">
                 <span class="input-group-addon">-</span>
-                <input type="date" id="filter_to"  onchange="getTrips()" class="form-control">
+                <input type="date" id="filter_to" onchange="load_all()" class="form-control">
                 <span class="input-group-addon"> </span>
                 <input type="submit" class="form-control" id="submit_new_trip" value="Filter!">
             </div>
         </form>
-  <div id="result" style="height: 400px; overflow-y: scroll;">Trips not loaded</div>
+   <div id="result" style="height: 370px; overflow-y: scroll;">Trips not loaded</div>
 
   </div>
     <div style="margin-left: 5%; margin-right: 5%; margin-top: 20px; margin-bottom: 40px">
@@ -75,7 +75,12 @@
             </div>
         </form>
     </div>
-
+  </div>
+      <div role="tabpanel" class="tab-pane" id="profiles">
+          <div id="users_div" style="margin-left: 5%; margin-right: 5%; height: 450px; overflow-y: scroll;">Users not loaded</div>
+      </div>
+      <div role="tabpanel" class="tab-pane" id="next_month">Next month</div>
+  </div>
     <div class="modal fade" id="myModal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="container" style="margin-top: 20px">
         <div class="row">
@@ -169,55 +174,8 @@
     </div>
 
   <script src="allscripts.js"></script>
-    <script type="text/javascript">
-        function onLoad() {
-            $('#login-form-link').click(function(e) {
-                $("#login-form").delay(100).fadeIn(100);
-                $("#register-form").fadeOut(100);
-                $('#register-form-link').removeClass('active');
-                $(this).addClass('active');
-                e.preventDefault();
-            });
-            $('#register-form-link').click(function(e) {
-                $("#register-form").delay(100).fadeIn(100);
-                $("#login-form").fadeOut(100);
-                $('#login-form-link').removeClass('active');
-                $(this).addClass('active');
-                e.preventDefault();
-            });
-            getTrips();
-            $(document).on('hidden.bs.modal', function (e) {
-                getTrips();
-            });
-            $("#login-form").submit(function(event) {
-                loginFromModal(event);
-                event.preventDefault();
-            });
-            $("#register-form").submit(function(event) {
-                registerFromModal(event);
-                event.preventDefault();
-            });
-            $("#form_new_trip").submit(function(event) {
-                newTrip(event);
-                event.preventDefault();
-            });
-            $("#edit_trip_form").submit(function(event) {
-                saveChanges();
-                event.preventDefault();
-            });
-            $("#filter_form").submit(function(event) {
-                getTrips();
-                event.preventDefault();
-            });
-        }
-        function loginFromModal(e) {
-            getToken();
-            $('#myModal').modal('hide');
-        }
-        function registerFromModal(e) {
-            register();
-        }
-	</script>
+  <script src="trips.js"></script>
+  <script src="users.js"></script>
 
 </body>
 </html>

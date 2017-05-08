@@ -58,14 +58,14 @@ class ApiTests(TestCase):
         response = client.get("/users/",
                               HTTP_AUTHORIZATION="JWT " + tokens["admin"],
                               content_type="application/json")
-        user_list = json.loads(response.content.decode("UTF-8"), "UTF-8")["results"]
+        user_list = json.loads(response.content.decode("UTF-8"), "UTF-8")
         self.assertEqual(len(user_list), 4, "There should be 4 users")
 
         # ordinary user should not see any users
         response = client.get("/users/",
                               HTTP_AUTHORIZATION="JWT " + tokens["billgates"],
                               content_type="application/json")
-        user_list = json.loads(response.content.decode("UTF-8"), "UTF-8")["results"]
+        user_list = json.loads(response.content.decode("UTF-8"), "UTF-8")
         self.assertEqual(len(user_list), 1, "Bill Gates user only")
 
         a_user = User.objects.filter(username="steve")[0]
@@ -104,5 +104,5 @@ class ApiTests(TestCase):
         response = client.get("/users/",
                               HTTP_AUTHORIZATION="JWT " + tokens["steve"],
                               content_type="application/json")
-        user_list = json.loads(response.content.decode("UTF-8"), "UTF-8")["results"]
+        user_list = json.loads(response.content.decode("UTF-8"), "UTF-8")
         self.assertEqual(len(user_list), 4, "All four users")
