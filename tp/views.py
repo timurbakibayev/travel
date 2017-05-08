@@ -73,10 +73,12 @@ def travel_plan(request):
         user = request.user
         if user is None:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        trips = Trip.objects.filter(user=user)
+        if len(user.groups.filter(name="admin")) == 0:
+            trips = Trip.objects.filter(user=user)
+        else:
+            trips = Trip.objects.all()
         today = datetime.now()
         trips = trips.filter(start_date__gte=today)
         trips = trips.filter(start_date__lt=today + relativedelta(months=1))
-        print(today, today + relativedelta(months=1))
         serializer = TripSerializer(trips, many=True)
         return Response(serializer.data)
