@@ -66,6 +66,7 @@ function logout() {
 
 function load_all() {
   getTrips();
+  getNextMonth();
   getUsers();
 }
 
@@ -116,4 +117,4 @@ function onLoad() {
         function registerFromModal(e) {
             register();
         }
-        
+

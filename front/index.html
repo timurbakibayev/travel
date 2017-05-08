@@ -25,9 +25,6 @@
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav navbar-right">
                     <li>
-                        <a class="page-scroll" onclick="getNextMonth()" style="color: #2b542c;" href="#">Trip plan</a>
-                    </li>
-                    <li>
                         <a id="login_button" class="page-scroll" data-toggle="modal" data-target="#myModal" style="color: #2b542c; visibility: hidden" href="#">Login</a>
                     </li>
                     <li>
@@ -79,7 +76,9 @@
       <div role="tabpanel" class="tab-pane" id="profiles">
           <div id="users_div" style="margin-left: 5%; margin-right: 5%; height: 450px; overflow-y: scroll;">Users not loaded</div>
       </div>
-      <div role="tabpanel" class="tab-pane" id="next_month">Next month</div>
+      <div role="tabpanel" class="tab-pane" id="next_month">
+          <div id="next_month_div" style="margin-left: 5%; margin-right: 5%; height: 450px; overflow-y: scroll;">Next Month not loaded</div>
+      </div>
   </div>
     <div class="modal fade" id="myModal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="container" style="margin-top: 20px">
