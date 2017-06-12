@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src='https://www.google.com/recaptcha/api.js'></script>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    {{ message }}
+    <form action="index.html" method="POST">
+        <div class="g-recaptcha" data-sitekey="6LfF5SQUAAAAALyOaSJNivE1rbCOti7lMwmF85v-"></div>
+    </form>
+    <button onclick="checkCaptcha()">captcha?</button>
+
+    <script language="JavaScript">
+        function checkCaptcha() {
+            var response = grecaptcha.getResponse();
+            if(response.length > 0)
+                alert(response);
+            else
+                alert("Not verified");
+        }
+    </script>
+</body>
+</html>
