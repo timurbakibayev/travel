@@ -11,5 +11,6 @@ urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^meals/$', views.meal_list),
     url(r'^meals/(?P<pk>[0-9]+)/$', views.meal_detail),
-    url(r'^users/$', views_users.user_list)
+    url(r'^users/$', views_users.user_list),
+    url(r'^users/(?P<pk>[0-9]+)/$', views_users.user_detail),
 ]

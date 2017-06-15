@@ -7,10 +7,46 @@ from cal.serializers import UserSerializer
 from cal.serializers import GroupSerializer
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
+from cal.models import Profile
+
+
+def request_post_errors(request):
+    err={}
+    if "password" in request.data:
+        if not isinstance(request.data["password"],str) or len(request.data["password"])<8:
+            err["password"] = ["Password should be a string with minimum length 8"]
+    if "admin" in request.data and request.data["admin"] not in [0, 1]:
+        err["admin"] = ["Should be 0 or 1"]
+    if "manager" in request.data and request.data["manager"] not in [0, 1]:
+        err["manager"] = ["Should be 0 or 1"]
+    if "calories" in request.data:
+        if isinstance(request.data["calories"], int):
+            cals = request.data["calories"]
+            if cals <= 0:
+                err["calories"] = ["Number of calories should be greater than zero"]
+        else:
+            err["calories"] = ["Number of calories should be a positive integer"]
+    return err
 
 
 @api_view(['GET', 'POST'])
 def user_list(request):
+    try:
+        manager = Group.objects.filter(name="manager")[0]
+    except IndexError:
+        g=Group()
+        g.name = "manager"
+        g.save()
+        manager = g
+
+    try:
+        admin = Group.objects.filter(name="admin")[0]
+    except IndexError:
+        g=Group()
+        g.name = "admin"
+        g.save()
+        admin = g
+
     if request.method == 'GET':
         user = request.user
         if len(user.groups.filter(name="admin")) != 1:
@@ -24,57 +60,103 @@ def user_list(request):
     elif request.method == 'POST':
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
+            errors = request_post_errors(request)
+            if len(errors) > 0:
+                return Response(data=errors,
+                                status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
+            user = User.objects.filter(username=request.data["username"])[0]
+            t, created = Profile.objects.get_or_create(pk=user.id, user_id=user.id)
+            if "password" in request.data:
+                user.set_password(request.data["password"])
+                user.save()
+            if "admin" in request.data:
+                if len(user.groups.filter(name="admin")) == 1 and request.data["admin"] == 0:
+                    user.groups.remove(admin)
+                if len(user.groups.filter(name="admin")) == 0 and request.data["admin"] == 1:
+                    user.groups.add(admin)
+                user.save()
+            if "manager" in request.data:
+                if len(user.groups.filter(name="manager")) == 1 and request.data["manager"] == 0:
+                    user.groups.remove(manager)
+                if len(user.groups.filter(name="manager")) == 0 and request.data["manager"] == 1:
+                    user.groups.add(manager)
+                if request.data["manager"] not in [0,1]:
+                    errors["manager"] = ["Should be 0 or 1"]
+                user.save()
+            if "calories" in request.data:
+                t.calories = request.data["calories"]
+            t.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET', 'PUT', 'DELETE', 'PATCH'])
+def user_detail(request, pk):
+    try:
+        user = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
+    try:
+        manager = Group.objects.filter(name="manager")[0]
+    except IndexError:
+        g=Group()
+        g.name = "manager"
+        g.save()
+        manager = g
 
-class UserViewSet(viewsets.ModelViewSet):
-    pagination_class = None
-    queryset = User.objects.all().order_by('-date_joined')
-    serializer_class = UserSerializer
-    permission_classes = (permissions.AllowAny,)
+    try:
+        admin = Group.objects.filter(name="admin")[0]
+    except IndexError:
+        g=Group()
+        g.name = "admin"
+        g.save()
+        admin = g
 
-    def get_queryset(self):
-        user = self.request.user
-        if len(user.groups.filter(name="admin")) > 0 or \
-                        len(user.groups.filter(name="manager")) > 0 or \
-                user.is_superuser:
-            queryset_list = User.objects.all().order_by('-date_joined')
-        else:
-            queryset_list = User.objects.filter(username=user.username).order_by('-date_joined')
+    user1 = request.user
+    if user1 is None:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+    if len(user1.groups.filter(name="admin")) != 1 and user != user1:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        return queryset_list
+    if request.method == 'GET':
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
 
-    def perform_update(self, serializer):
-        user = self.request.user
-        if len(user.groups.filter(name="admin")) > 0 or \
-                        len(user.groups.filter(name="manager")) > 0 or \
-                user.is_superuser:
-            instance = serializer.save()
-            return instance
+    elif request.method == 'PATCH' or request.method == 'PUT':
+        serializer = UserSerializer(user, data=request.data, partial=request.method == 'PATCH')
+        if serializer.is_valid():
+            errors = request_post_errors(request)
 
+            if len(errors) > 0:
+                return Response(data=errors,
+                                status=status.HTTP_400_BAD_REQUEST)
+            print("saving...",errors)
+            serializer.save()
+            user = User.objects.get(pk=pk)
+            if "password" in request.data:
+                user.set_password(request.data["password"])
+                user.save()
+            if "admin" in request.data:
+                if len(user.groups.filter(name="admin")) == 1 and request.data["admin"] == 0:
+                    user.groups.remove(admin)
+                elif len(user.groups.filter(name="admin")) == 0 and request.data["admin"] == 1:
+                    user.groups.add(admin)
+                user.save()
+            if "manager" in request.data:
+                if len(user.groups.filter(name="manager")) == 1 and request.data["manager"] == 0:
+                    user.groups.remove(manager)
+                elif len(user.groups.filter(name="manager")) == 0 and request.data["manager"] == 1:
+                    user.groups.add(manager)
+                user.save()
+            t,created = Profile.objects.get_or_create(pk=pk, user_id=user.id)
+            if "calories" in request.data:
+                t.calories = request.data["calories"]
+            t.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class GroupViewSet(viewsets.ModelViewSet):
-    queryset = Group.objects.all().order_by('name')
-    serializer_class = GroupSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        if len(user.groups.filter(name="admin")) > 0 or \
-                        len(user.groups.filter(name="manager")) > 0 or \
-                user.is_superuser:
-            queryset_list = Group.objects.all().order_by('name')
-        else:
-            queryset_list = []
-        return queryset_list
-
-    def perform_update(self, serializer):
-        user = self.request.user
-        if len(user.groups.filter(name="admin")) > 0 or \
-                        len(user.groups.filter(name="manager")) > 0 or \
-                user.is_superuser:
-            instance = serializer.save()
-            return instance
+    elif request.method == 'DELETE':
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
