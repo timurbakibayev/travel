@@ -13,4 +13,5 @@ urlpatterns = [
     url(r'^meals/(?P<pk>[0-9]+)/$', views.meal_detail),
     url(r'^users/$', views_users.user_list),
     url(r'^users/(?P<pk>[0-9]+)/$', views_users.user_detail),
+    url(r'^verify/(?P<user_id>[0-9]+)/(?P<verification_code>[0-9a-zA-Z]+)', views_users.verify),
 ]

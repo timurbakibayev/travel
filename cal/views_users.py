@@ -1,3 +1,4 @@
+from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status, permissions
 from rest_framework.permissions import AllowAny
@@ -160,3 +161,23 @@ def user_detail(request, pk):
     elif request.method == 'DELETE':
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+def verify(request, user_id, verification_code):
+    try:
+        user = User.objects.get(pk=user_id)
+        profile = Profile.objects.get(user=user)
+
+        if profile.verification_code == verification_code:
+            profile.verified=True
+            profile.save()
+            context = {"message": "Your Email is successfully verified!",
+                       "user": user,
+                       "profile": profile}
+            return render(request, "verify.html", context)
+        context = {"message": "We are sorry, verification code is wrong!",
+                   "user": user,
+                   "profile": profile}
+        return render(request, "verify.html", context)
+    except:
+        return Response(["Something went wrong!"], status=status.HTTP_400_BAD_REQUEST)

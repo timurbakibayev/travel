@@ -137,3 +137,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 CAPTCHA_SECRET_KEY = "6LfF5SQUAAAAADR99qq5tYEqFbvR6Dmo3EzJWS84"
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'sagrad2daytelecom@gmail.com'
+EMAIL_HOST_PASSWORD = 'skoda5918'
+EMAIL_PORT = 587
+GLOBAL_URL = "http://localhost:8000/"
