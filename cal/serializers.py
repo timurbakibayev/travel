@@ -41,19 +41,19 @@ class UserSerializer(serializers.ModelSerializer):
         return len(user.groups.filter(name="manager"))
 
     def i_verified(self,user):
-        the_user = Profile.objects.get(pk=user.id)
-        return the_user.verified
+        profile = Profile.objects.get(pk=user.id)
+        return profile.verified
 
     def i_calories(self,user):
         try:
-            the_user = Profile.objects.get(pk=user.id)
+            profile = Profile.objects.get(pk=user.id)
         except:
             t = Profile()
             t.user = user
             t.id = user.id
             t.save()
-            the_user = t
-        return the_user.calories
+            profile = t
+        return profile.calories
 
 
     class Meta:

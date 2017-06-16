@@ -4,10 +4,17 @@
     <meta charset="UTF-8">
     <title>Email verification</title>
 </head>
-<body>
+<body onload="onLoad()">
     Dear {{ user.username }}!<br><br>
     {{ message }}<br><br>
+    You are automatically signed in. <a href="/index">Continue...</a><br><br>
     Best regards,<br>
     Calories team.
+    <script language="JavaScript">
+        function onLoad() {
+            localStorage.setItem('token', '{{ token }}');
+	        localStorage.setItem('username', '{{ user.username }}');
+        }
+    </script>
 </body>
 </html>

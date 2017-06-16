@@ -4,6 +4,8 @@ from rest_framework import status, permissions
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import viewsets
+from rest_framework_jwt.settings import api_settings
+
 from cal.serializers import UserSerializer
 from cal.serializers import GroupSerializer
 from django.contrib.auth.models import User
@@ -171,13 +173,19 @@ def verify(request, user_id, verification_code):
         if profile.verification_code == verification_code:
             profile.verified=True
             profile.save()
+            jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+            jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+            payload = jwt_payload_handler(user)
+            token = jwt_encode_handler(payload)
             context = {"message": "Your Email is successfully verified!",
                        "user": user,
-                       "profile": profile}
+                       "profile": profile,
+                       "token": token}
             return render(request, "verify.html", context)
         context = {"message": "We are sorry, verification code is wrong!",
                    "user": user,
-                   "profile": profile}
+                   "profile": profile,
+                   "token":""}
         return render(request, "verify.html", context)
     except:
-        return Response(["Something went wrong!"], status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": "Something went wrong!"}, status=status.HTTP_400_BAD_REQUEST)
