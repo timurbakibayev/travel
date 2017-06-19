@@ -1,13 +1,19 @@
 from django.shortcuts import render
 from django.db.models import Q
+from django.utils.datetime_safe import datetime
 from rest_framework.decorators import api_view
 from cal.serializers import MealSerializer
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from cal.models import Meal
+from cal.models import Profile
+
+def login(request):
+    context = {"message": "Hello, world!"}
+    return render(request, "login.html", context)
 
 def index(request):
-    context = {"message": "Hello, world!"}
+    context = {"today": datetime.now()}
     return render(request, "index.html", context)
 
 @api_view(['GET', 'POST'])
@@ -22,12 +28,18 @@ def meal_list(request):
             txt = request.GET.get("search")
             for word in txt.lower().split():
                 meals = meals.filter(Q(text__contains=word))
-        # if request.GET.get("from"):
-        #     date_from = request.GET.get("from").smeal()
-        #     meals = meals.filter(end_date__gte=date_from)
-        # if request.GET.get("till"):
-        #     date_till = request.GET.get("till").smeal()
-        #     meals = meals.filter(start_date__lte=date_till)
+        if request.GET.get("date_from"):
+            date_from = request.GET.get("date_from").strip()
+            meals = meals.filter(date__gte=date_from)
+        if request.GET.get("date_to"):
+            date_to = request.GET.get("date_to").strip()
+            meals = meals.filter(date__lte=date_to)
+        if request.GET.get("time_from"):
+            time_from = request.GET.get("time_from").strip()
+            meals = meals.filter(time__gte=time_from)
+        if request.GET.get("time_to"):
+            time_to = request.GET.get("time_to").strip()
+            meals = meals.filter(time__lte=time_to)
         serializer = MealSerializer(meals, many=True)
         return Response(serializer.data)
 
@@ -57,7 +69,7 @@ def meal_detail(request, pk):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        serializer = MealSerializer(meal, data=request.data)
+        serializer = MealSerializer(meal, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

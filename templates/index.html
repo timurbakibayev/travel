@@ -1,25 +1,241 @@
 <!DOCTYPE html>
 <html lang="en">
+{% load static %}
 <head>
-    <script src='https://www.google.com/recaptcha/api.js'></script>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-    {{ message }}
-    <form action="index.html" method="POST">
-        <div class="g-recaptcha" data-sitekey="6LfF5SQUAAAAALyOaSJNivE1rbCOti7lMwmF85v-"></div>
-    </form>
-    <button onclick="checkCaptcha()">captcha?</button>
+  <meta charset="UTF-8">
+  <title>Calories</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
-    <script language="JavaScript">
-        function checkCaptcha() {
-            var response = grecaptcha.getResponse();
-            if(response.length > 0)
-                alert(response);
-            else
-                alert("Not verified");
-        }
-    </script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="{% static "login.css" %}">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+</head>
+<body onload="onLoad()">
+    <nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
+                </button>
+                <a class="navbar-brand page-scroll" style="color: #2b542c;" href="#">Travel Planner</a>
+            </div>
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a id="daily_button" class="page-scroll" style="color: red;" href="#">Loading...</a>
+                    </li>
+                    <li>
+                        <a id="login_button" class="page-scroll" data-toggle="modal" data-target="#myModal" style="color: #2b542c; visibility: hidden" href="#">Login</a>
+                    </li>
+                    <li>
+                        <a id="logout_button" class="page-scroll" onclick="logout()" style="color: #2b542c; visibility: hidden" href="#">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+ <ul class="nav nav-tabs" role="tablist" style="margin-top: 80px; margin-left: 5%; margin-right: 5%; zoom: 0.7">
+    <li role="presentation" class="active"><a href="#meals" aria-controls="meals" role="tab" data-toggle="tab">Meals</a></li>
+    <li role="presentation"><a href="#profiles" aria-controls="profiles" role="tab" data-toggle="tab">Users</a></li>
+    <li role="presentation"><a href="#next_month" aria-controls="messages" role="tab" data-toggle="tab">Next month</a></li>
+  </ul>
+  <div class="tab-content">
+  <div role="tabpanel" class="tab-pane active" id="meals">
+	<div style="margin-left: 5%; margin-right: 5%; margin-top: 10px">
+        <form id="filter_form" style="zoom: 0.7">
+            <div class="input-group">
+                <input type="text" id="filter_text" onchange="load_all()" class="form-control" placeholder="Search">
+                <span class="input-group-addon">Date</span>
+                <input type="date" id="filter_date_from" onchange="load_all()" class="form-control">
+                <input type="date" id="filter_date_to" onchange="load_all()" class="form-control">
+                <span class="input-group-addon">Time</span>
+                <input type="time" id="filter_time_from" onchange="load_all()" class="form-control">
+                <input type="time" id="filter_time_to" onchange="load_all()" class="form-control">
+            </div>
+        </form>
+   <div id="result" style="height: 370px; overflow-y: scroll;">Meals not loaded</div>
+
+  </div>
+    <div style="margin-left: 5%; margin-right: 5%; margin-top: 20px; margin-bottom: 40px">
+        <form name="form_new_meal" id="form_new_meal">
+            <div id="new_errors" style="margin-bottom: 10px; text-align: center; color: red"></div>
+            <div class="input-group">
+                <input type="text" name="new_text" id="new_text" class="form-control" placeholder="New Meal">
+                <span class="input-group-addon"> </span>
+                <input type="date" name="new_date" id="new_date" class="form-control" value="{{ today|date:"Y-m-d" }}">
+                <span class="input-group-addon">-</span>
+                <input type="time" name="new_time" id="new_time"  class="form-control" value="{{ today|date:"H:i" }}">
+                <span class="input-group-addon"> </span>
+                <input type="number" name="new_calories" id="new_calories" class="form-control" placeholder="Number of calories">
+                <span class="input-group-addon"> </span>
+                <input type="submit" class="form-control" name="submit_new_meal" id="submit_new_meal" value="Eat">
+            </div>
+        </form>
+    </div>
+  </div>
+      <div role="tabpanel" class="tab-pane" id="profiles">
+          <div id="users_div" style="margin-left: 5%; margin-right: 5%; height: 450px; overflow-y: scroll;">Users not loaded</div>
+      </div>
+      <div role="tabpanel" class="tab-pane" id="next_month">
+          <div id="next_month_div" style="margin-left: 5%; margin-right: 5%; height: 450px; overflow-y: scroll;">Next Month not loaded</div>
+      </div>
+  </div>
+    <div class="modal fade" id="myModal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="container" style="margin-top: 20px">
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+				<div class="panel panel-login">
+					<div class="panel-heading">
+						<div class="row">
+							<div class="col-xs-6">
+								<a href="#" class="active" id="login-form-link">Login</a>
+							</div>
+							<div class="col-xs-6">
+								<a href="#" id="register-form-link">Register</a>
+							</div>
+						</div>
+						<hr>
+					</div>
+					<div class="panel-body">
+						<div class="row">
+							<div class="col-lg-12">
+								<form id="login-form" method="post" role="form" style="display: block;">
+									<div class="form-group">
+										<input type="text" name="username" id="username"  class="form-control" placeholder="Username" value="">
+									</div>
+									<div class="form-group">
+										<input type="password" name="password" id="password"  class="form-control" placeholder="Password">
+									</div>
+                                    <div id="login-error-div" style="margin-bottom: 10px; text-align: center; color: red"></div>
+									<div class="form-group">
+										<div class="row">
+											<div class="col-sm-6 col-sm-offset-3">
+												<input type="submit" name="login-submit" id="login-submit" class="form-control btn btn-login" value="Login">
+											</div>
+										</div>
+									</div>
+								</form>
+								<form id="register-form" method="post" role="form" style="display: none;">
+                                    <div class="form-group">
+										<input type="text" name="reg_username" id="reg_username" class="form-control" placeholder="Username" value="">
+									</div>
+									<div class="form-group">
+										<input type="password" name="reg_password" id="reg_password" class="form-control" placeholder="Password">
+									</div>
+                                    <div class="form-group">
+										<input type="email" name="reg_email" id="reg_email" class="form-control" placeholder="Email" value="">
+									</div>
+                                    <div id="register-error-div" style="margin-bottom: 10px; text-align: center; color: red"></div>
+                                    <div id="register-success-div" style="margin-bottom: 10px; text-align: center; color: green"></div>
+									<div class="form-group">
+										<div class="row">
+											<div class="col-sm-6 col-sm-offset-3">
+												<input type="submit" name="register-submit" id="register-submit" class="form-control btn btn-register" value="Register">
+											</div>
+										</div>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+            </div>
+        </div>
+    </div>
+
+
+        <div class="modal fade" id="myModalDaily" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="container" style="margin-top: 20px">
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+				<div class="panel panel-login">
+					<div class="panel-heading">
+						<div class="row">
+							<div class="col-xs-6">
+								<a href="#" class="active" id="login-form-link">User settings</a>
+							</div>
+						</div>
+						<hr>
+					</div>
+					<div class="panel-body">
+						<div class="row">
+							<div class="col-lg-12">
+								<form id="user-settings-form" method="post" role="form" style="display: block;">
+                                    Username:
+									<div class="form-group">
+                                        <label name="settings_username" id="settings_username"  class="form-control" placeholder="Username" >{{ user.username }}</label>
+									</div>
+                                    Daily calories:
+									<div class="form-group">
+										<input type="number" name="settings_calories" id="settings_calories"  class="form-control" placeholder="Username" value="{{ profile.calories }}" contenteditable="false">
+									</div>
+                                    New password
+									<div class="form-group">
+										<input type="settings_password" name="settings_password" id="settings_password"  class="form-control" placeholder="New Password">
+									</div>
+                                    <div id="login-error-div" style="margin-bottom: 10px; text-align: center; color: red"></div>
+									<div class="form-group">
+										<div class="row">
+											<div class="col-sm-6 col-sm-offset-3">
+												<input type="submit" name="login-submit" id="login-submit" class="form-control btn btn-login" value="Save">
+											</div>
+										</div>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="modal fade" id="editModalForm" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                     <h4 class="modal-title" id="edit_modal_header">Edit</h4>
+                </div>
+                <form id="edit_meal_form">
+                <div class="modal-body">
+                    <div class="input-group">
+                        <label for="edit_text">Meal</label>
+                        <input type="text" name="edit_text" id="edit_text" class="form-control" placeholder="New Meal">
+                    </div><div class="input-group">
+                        <label for="edit_date">Date</label>
+                        <input type="date" name="edit_date" id="edit_date" class="form-control">
+                    </div><div class="input-group">
+                        <label for="edit_time">Time</label>
+                        <input type="time" name="edit_time" id="edit_time" class="form-control">
+                    </div><div class="input-group">
+                        <label for="edit_calories">Calories</label>
+                        <input type="number" name="edit_calories" id="edit_calories" class="form-control" placeholder="Number of calories">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+                    </form>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+  <script src="{% static "allscripts.js" %}"></script>
+  <script src="{% static "meals.js" %}"></script>
+  <script src="{% static "users.js" %}"></script>
+
 </body>
 </html>

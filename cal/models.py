@@ -26,6 +26,7 @@ class Profile(models.Model):
     calories = models.IntegerField(default=1000)
     verification_code = models.CharField(max_length=100, default="111")
     verified = models.BooleanField(default=False)
+    blocked = models.BooleanField(default=False)
 
     def __str__(self):
         return "profile for " + self.user.username

@@ -1,5 +1,7 @@
 from django.shortcuts import render
-from rest_framework.decorators import api_view, permission_classes
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework import status, permissions
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -11,7 +13,15 @@ from cal.serializers import GroupSerializer
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
 from cal.models import Profile
+from cal.emails import send_verification_email
+from django.utils.deprecation import MiddlewareMixin
 
+
+class DisableCsrfCheck(MiddlewareMixin):
+    def process_request(self, req):
+        attr = '_dont_enforce_csrf_checks'
+        if not getattr(req, attr, False):
+            setattr(req, attr, True)
 
 def request_post_errors(request):
     err={}
@@ -32,7 +42,11 @@ def request_post_errors(request):
     return err
 
 
+#@authentication_classes([])
+#@csrf_exempt
 @api_view(['GET', 'POST'])
+@permission_classes([])
+@method_decorator(csrf_exempt, name='dispatch')
 def user_list(request):
     try:
         manager = Group.objects.filter(name="manager")[0]
@@ -52,7 +66,9 @@ def user_list(request):
 
     if request.method == 'GET':
         user = request.user
-        if len(user.groups.filter(name="admin")) != 1:
+        if user == None:
+            return Response({"detail":"Authentication failed"}, status=status.HTTP_401_UNAUTHORIZED)
+        if len(user.groups.filter(name="admin")) + len(user.groups.filter(name="manager")) == 0:
             users = User.objects.filter(pk=user.id)
         else:
             users = User.objects.all()
@@ -64,6 +80,8 @@ def user_list(request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             errors = request_post_errors(request)
+            if "email" not in request.data or len(request.data["email"])==0:
+                errors["email"] = ["Field is required"]
             if len(errors) > 0:
                 return Response(data=errors,
                                 status=status.HTTP_400_BAD_REQUEST)
@@ -120,15 +138,19 @@ def user_detail(request, pk):
     user1 = request.user
     if user1 is None:
         return Response(status=status.HTTP_401_UNAUTHORIZED)
-    if len(user1.groups.filter(name="admin")) != 1 and user != user1:
-        return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+    if len(user1.groups.filter(name="admin")) + len(user1.groups.filter(name="manager")) == 0 and user != user1:
+        return Response({"detail":"You need admin or manager rights to do that"},status=status.HTTP_401_UNAUTHORIZED)
+
+    if len(user.groups.filter(name="admin")) and user != user1:
+        return Response({"detail":"Admin can only be changed by himself"},status=status.HTTP_401_UNAUTHORIZED)
 
     if request.method == 'GET':
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
     elif request.method == 'PATCH' or request.method == 'PUT':
-        serializer = UserSerializer(user, data=request.data, partial=request.method == 'PATCH')
+        serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             errors = request_post_errors(request)
 
@@ -142,18 +164,29 @@ def user_detail(request, pk):
                 user.set_password(request.data["password"])
                 user.save()
             if "admin" in request.data:
+                if len(user1.groups.filter(name="admin"))==0 and user != user1:
+                    return Response({"detail": "Admin rights can be set only by admins"},
+                                    status=status.HTTP_401_UNAUTHORIZED)
                 if len(user.groups.filter(name="admin")) == 1 and request.data["admin"] == 0:
                     user.groups.remove(admin)
                 elif len(user.groups.filter(name="admin")) == 0 and request.data["admin"] == 1:
                     user.groups.add(admin)
                 user.save()
             if "manager" in request.data:
+                if len(user1.groups.filter(name="admin"))==0 and user != user1:
+                    return Response({"detail": "Manager rights can be set only by admins"},
+                                    status=status.HTTP_401_UNAUTHORIZED)
                 if len(user.groups.filter(name="manager")) == 1 and request.data["manager"] == 0:
                     user.groups.remove(manager)
                 elif len(user.groups.filter(name="manager")) == 0 and request.data["manager"] == 1:
                     user.groups.add(manager)
                 user.save()
             t,created = Profile.objects.get_or_create(pk=pk, user_id=user.id)
+            if "blocked" in request.data:
+                if request.data["blocked"] == False:
+                    t.blocked = False
+                elif request.data["blocked"] == True:
+                    t.blocked = True
             if "calories" in request.data:
                 t.calories = request.data["calories"]
             t.save()
@@ -189,3 +222,14 @@ def verify(request, user_id, verification_code):
         return render(request, "verify.html", context)
     except:
         return Response({"detail": "Something went wrong!"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def send_code(request, username):
+    try:
+        user = User.objects.filter(username=username)[0]
+        profile = Profile.objects.get(user=user)
+    except:
+        return Response({"detail": "User not found!"}, status=status.HTTP_400_BAD_REQUEST)
+    send_verification_email(profile)
+    return Response({"detail": "Verification code is sent to "+user.email}, status=status.HTTP_200_OK)
