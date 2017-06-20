@@ -1,7 +1,6 @@
 from django.core.mail import send_mail
 from calories import settings
 
-
 def send_verification_email(profile):
     send_mail(
         'Please, verify your email',
@@ -13,12 +12,13 @@ def send_verification_email(profile):
         fail_silently=False
     )
 
-def send_invitation_email(profile):
+
+def send_invitation_email(invitation):
     send_mail(
         'You are invited to Calories!',
         'Hi! \n\nPlease, continue your registration by providing your username and password: \n' +
-        profile.verification_link() + "\n\nThank you for your cooperation!",
+        invitation.invitation_link() + "\n\nThank you for your cooperation!",
         settings.EMAIL_HOST_USER,
-        [profile.user.email],
+        [invitation.email],
         fail_silently=False
     )

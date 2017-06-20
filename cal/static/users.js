@@ -7,7 +7,7 @@ function getUsers() {
     var resultElement = document.getElementById('users_div');
     var dailyElement = document.getElementById('daily_button');
     var inviteElement = document.getElementById('invite_button');
-    dailyElement.innerHTML = "Loading...";
+    dailyElement.innerHTML = "...";
     dailyElement.style.color = "black";
     xhr.open('GET', url, true);
     xhr.setRequestHeader("Authorization", "JWT " + token);
@@ -44,7 +44,7 @@ function getUsers() {
                     dailyElement.innerHTML = "Today consumed: " + data[key]["consumed"] + "/" + data[key]["calories"];
                     dailyElement.style.color = data[key]["consumed"]>=data[key]["calories"]?"red":"green";
                     if (data[key]["admin"])
-                        inviteElement.innerHTML = '<a href = "google.com">Invite (you are an admin)</a>';
+                        inviteElement.innerHTML = 'Invite (you are an admin)';
                     else
                         inviteElement.innerHTML = "";
                 } else

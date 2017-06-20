@@ -2,7 +2,7 @@ var editMealId;
 var times = 0;
 
 function getToken() {
-    var loginUrl = "http://localhost:8000/auth-api/"
+    var loginUrl = "http://localhost:8000/auth-web/"
     var xhr = new XMLHttpRequest();
     var userElement = document.getElementById('username');
     var passwordElement = document.getElementById('password');
@@ -11,6 +11,12 @@ function getToken() {
     var user = userElement.value;
     var password = passwordElement.value;
     errorElement.innerHTML = "";
+    var response = grecaptcha.getResponse();
+    grecaptcha.reset();
+    // if(response.length > 0)
+    //     alert(response);
+    // else
+    //     alert("Not verified");
     xhr.open('POST', loginUrl, true);
     xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     xhr.addEventListener('load', function () {
@@ -33,7 +39,7 @@ function getToken() {
         }
     });
 
-    var sendObject = JSON.stringify({username: user, password: password});
+    var sendObject = JSON.stringify({username: user, password: password, captcha: response});
 
     console.log('going to send', sendObject);
 
@@ -55,33 +61,6 @@ function send_verification_code(username) {
 
     xhr.send(sendObject);
 }
-
-function getToken1(user, password) {
-    var loginUrl = "http://localhost:8000/auth-api/";
-    var xhr = new XMLHttpRequest();
-    var resultElement = document.getElementById('result');
-
-    xhr.open('POST', loginUrl, true);
-    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    xhr.addEventListener('load', function () {
-        var responseObject = JSON.parse(this.response);
-        console.log(responseObject);
-        if (responseObject.token) {
-            localStorage.setItem('token', responseObject.token);
-            localStorage.setItem('username', user);
-            load_all();
-        } else {
-            resultElement.innerHTML = "No token received";
-        }
-    });
-
-    var sendObject = JSON.stringify({username: user, password: password});
-
-    console.log('going to login from register', sendObject);
-
-    xhr.send(sendObject);
-}
-
 
 function logout() {
     localStorage.setItem('token', "");
@@ -142,6 +121,51 @@ function onLoad() {
         });
         xhr.send(null);
     });
+
+    $('#invite_button').click(function (e) {
+        $('#inviteModalForm').modal('show');
+    });
+
+    $("#invite_form").submit(function (event) {
+        event.preventDefault();
+        $('#inviteModalForm').modal('hide');
+        var token = localStorage.getItem('token');
+        var user = localStorage.getItem('username');
+        var url = "http://localhost:8000/invitations/";
+        var xhr = new XMLHttpRequest();
+        var email = $('#invite_email').val();
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader("Authorization", "JWT " + token);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        xhr.addEventListener('load', function () {
+            try {
+                var responseObject = JSON.parse(this.response);
+                console.log(responseObject);
+                if (this.status == 201) {
+                    alert("The user is successfully invited!");
+                }
+                if (responseObject.detail)
+                    alert(responseObject.detail);
+                else {
+                    errors = "";
+                    for (var k in responseObject) {
+                        if (responseObject.hasOwnProperty(k)) {
+                            console.log(k + ": " + responseObject[k]);
+                            errors += k + ": " + responseObject[k] + "\n";
+                        }
+                    }
+                    alert("errors:\n" + errors);
+                }
+            } catch (e) {alert(e)};
+        });
+
+        var sendObject = JSON.stringify({email: email});
+
+        console.log('going to send', sendObject);
+
+        xhr.send(sendObject);
+    });
+
     $("#user-settings-form").submit(function (event) {
         event.preventDefault();
         saveUserSettings();

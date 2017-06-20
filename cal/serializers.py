@@ -1,10 +1,16 @@
 from django.utils.datetime_safe import datetime
 from rest_framework import serializers
 from cal.models import Meal
+from cal.models import Invitation
 from cal.models import Profile
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
 
+
+class InvitationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invitation
+        fields = ('id', 'email')
 
 class MealSerializer(serializers.ModelSerializer):
     class Meta:
@@ -57,20 +63,20 @@ class UserSerializer(serializers.ModelSerializer):
         return len(user.groups.filter(name="manager")) > 0
 
     def i_verified(self,user):
-        profile = Profile.objects.get(pk=user.id)
+        profile = Profile.objects.get(user=user)
         return profile.verified
 
     def i_invited(self,user):
-        profile = Profile.objects.get(pk=user.id)
+        profile = Profile.objects.get(user=user)
         return profile.invited
 
     def i_blocked(self,user):
-        profile = Profile.objects.get(pk=user.id)
+        profile = Profile.objects.get(user=user)
         return profile.blocked
 
     def i_calories(self,user):
         try:
-            profile = Profile.objects.get(pk=user.id)
+            profile = Profile.objects.get(user=user)
         except:
             t = Profile()
             t.user = user

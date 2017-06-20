@@ -22,6 +22,16 @@ class Meal(models.Model):
         ordering = ["date"]
 
 
+class Invitation(models.Model):
+    email = models.EmailField(max_length=100)
+
+    def __str__(self):
+        return self.email
+
+    def invitation_link(self):
+        return settings.GLOBAL_URL + "invite/"+str(self.id)+"/"
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     calories = models.IntegerField(default=1000)
@@ -44,15 +54,12 @@ def create_profile(sender, instance, created, **kwargs):
         profile, new = Profile.objects.get_or_create(pk=instance.id, user=instance)
         print("Created a user:", profile)
         profile.verification_code = ''.join(random.choice('abc123') for _ in range(10))
+        profile.verified = profile.invited
         profile.save()
         if not profile.invited:
             try:
                 send_verification_email(profile)
             except:
                 pass
-        else:
-            try:
-                send_invitation_email(profile)
-            except:
-                pass
+
 
