@@ -254,8 +254,9 @@ function getMeals() {
             tableHeader += "<th>Edit</th></tr></thead>";
 
             var r = new Array(), j = -1;
+            var c = 0;
             for (var key = 0, size = data.length; key < size; key++) {
-                console.log(data[key]["destination"])
+                console.log(data[key]["text"])
                 if (data[key]["id"] == window.editMealId)
                     r[++j] = '<tr class="changed">';
                 else
@@ -264,10 +265,12 @@ function getMeals() {
                 r[++j] = '<td>' + data[key]["date"] + "</td>";
                 r[++j] = '<td>' + data[key]["time"] + "</td>";
                 r[++j] = '<td>' + data[key]["calories"] + "</td>";
+                c += data[key]["calories"];
                 r[++j] = '<td><a href="#" onclick="editMeal(' + data[key]["id"] + ')">Edit 🖉</a> ' +
                     ' <a href="#" onclick="deleteMeal(' + data[key]["id"] + ", '" + data[key]["text"] + "'" + ')">Delete ✘</a> </td>';
                 r[++j] = '</tr>';
             }
+            r[++j] = '<tr><td>Total</td> <td> </td> <td></td> <td>'+c+'</td></tr>';
             resultElement.innerHTML = tableHeader + r.join('') + "</table>";
             window.times -= 1;
             // if (window.times <= 0)
