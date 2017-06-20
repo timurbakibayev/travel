@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from cal.emails import send_verification_email
+from cal.emails import send_invitation_email
 from calories import settings
 
 class Meal(models.Model):
@@ -27,6 +28,8 @@ class Profile(models.Model):
     verification_code = models.CharField(max_length=100, default="111")
     verified = models.BooleanField(default=False)
     blocked = models.BooleanField(default=False)
+    fails = models.IntegerField(default=0)
+    invited = models.BooleanField(default=False)
 
     def __str__(self):
         return "profile for " + self.user.username
@@ -42,7 +45,14 @@ def create_profile(sender, instance, created, **kwargs):
         print("Created a user:", profile)
         profile.verification_code = ''.join(random.choice('abc123') for _ in range(10))
         profile.save()
-        try:
-            send_verification_email(profile)
-        except:
-            pass
+        if not profile.invited:
+            try:
+                send_verification_email(profile)
+            except:
+                pass
+        else:
+            try:
+                send_invitation_email(profile)
+            except:
+                pass
+

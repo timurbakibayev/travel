@@ -6,6 +6,7 @@ function getUsers() {
     var xhr = new XMLHttpRequest();
     var resultElement = document.getElementById('users_div');
     var dailyElement = document.getElementById('daily_button');
+    var inviteElement = document.getElementById('invite_button');
     dailyElement.innerHTML = "Loading...";
     dailyElement.style.color = "black";
     xhr.open('GET', url, true);
@@ -42,6 +43,10 @@ function getUsers() {
                     r[++j] = '<tr style="background: #ccddff">';
                     dailyElement.innerHTML = "Today consumed: " + data[key]["consumed"] + "/" + data[key]["calories"];
                     dailyElement.style.color = data[key]["consumed"]>=data[key]["calories"]?"red":"green";
+                    if (data[key]["admin"])
+                        inviteElement.innerHTML = '<a href = "google.com">Invite (you are an admin)</a>';
+                    else
+                        inviteElement.innerHTML = "";
                 } else
                     r[++j] = '<tr>';
                 if (data[key]["username"] == user)
@@ -51,12 +56,12 @@ function getUsers() {
                 r[++j] = '<td>' + data[key]["email"] + "</td>";
                 r[++j] = '<td>';
                 groups = "";
-                if (data[key]["admin"] + data[key]["manager"] == 0)
+                if (data[key]["admin"] == false && data[key]["manager"] == false)
                     groups = "regular";
                 else {
-                    if (data[key]["admin"]==1)
+                    if (data[key]["admin"])
                         groups += "Admin";
-                    if (data[key]["manager"]==1) {
+                    if (data[key]["manager"]) {
                         if (groups != "")
                             groups += ", ";
                         groups += "Manager";
@@ -113,7 +118,7 @@ function grantManager(id, un) {
             console.log(responseObject);
         }
     });
-    var sendObject = JSON.stringify({manager: un=="un"?0:1});
+    var sendObject = JSON.stringify({manager: un=="un"?false:true});
     console.log("sending " + sendObject);
     xhr.send(sendObject);
 }

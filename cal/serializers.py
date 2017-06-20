@@ -5,6 +5,7 @@ from cal.models import Profile
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
 
+
 class MealSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meal
@@ -47,16 +48,21 @@ class UserSerializer(serializers.ModelSerializer):
     verified = serializers.SerializerMethodField("i_verified")
     blocked = serializers.SerializerMethodField("i_blocked")
     consumed = serializers.SerializerMethodField("i_consumed")
+    invited = serializers.SerializerMethodField("i_invited")
 
     def i_admin(self,user):
-        return len(user.groups.filter(name="admin"))
+        return len(user.groups.filter(name="admin")) > 0
 
     def i_manager(self,user):
-        return len(user.groups.filter(name="manager"))
+        return len(user.groups.filter(name="manager")) > 0
 
     def i_verified(self,user):
         profile = Profile.objects.get(pk=user.id)
         return profile.verified
+
+    def i_invited(self,user):
+        profile = Profile.objects.get(pk=user.id)
+        return profile.invited
 
     def i_blocked(self,user):
         profile = Profile.objects.get(pk=user.id)
@@ -77,10 +83,9 @@ class UserSerializer(serializers.ModelSerializer):
         c = 0
         for i in Meal.objects.filter(user=user, date=datetime.today()):
             c += i.calories
-        print(c)
         return c
-
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'admin', 'manager', 'consumed', 'calories', 'verified', 'blocked')
+        fields = ('id', 'username', 'email', 'admin', 'manager',
+                  'consumed', 'calories', 'verified', 'blocked', 'invited')

@@ -23,15 +23,16 @@ class DisableCsrfCheck(MiddlewareMixin):
         if not getattr(req, attr, False):
             setattr(req, attr, True)
 
+
 def request_post_errors(request):
-    err={}
+    err = {}
     if "password" in request.data:
-        if not isinstance(request.data["password"],str) or len(request.data["password"])<8:
+        if not isinstance(request.data["password"], str) or len(request.data["password"]) < 8:
             err["password"] = ["Password should be a string with minimum length 8"]
-    if "admin" in request.data and request.data["admin"] not in [0, 1]:
-        err["admin"] = ["Should be 0 or 1"]
-    if "manager" in request.data and request.data["manager"] not in [0, 1]:
-        err["manager"] = ["Should be 0 or 1"]
+    if "admin" in request.data and request.data["admin"] not in [True, False]:
+        err["admin"] = ["Should be true or false"]
+    if "manager" in request.data and request.data["manager"] not in [True, False]:
+        err["manager"] = ["Should be true or false"]
     if "calories" in request.data:
         if isinstance(request.data["calories"], int):
             cals = request.data["calories"]
@@ -42,8 +43,8 @@ def request_post_errors(request):
     return err
 
 
-#@authentication_classes([])
-#@csrf_exempt
+# @authentication_classes([])
+# @csrf_exempt
 @api_view(['GET', 'POST'])
 @permission_classes([])
 @method_decorator(csrf_exempt, name='dispatch')
@@ -51,7 +52,7 @@ def user_list(request):
     try:
         manager = Group.objects.filter(name="manager")[0]
     except IndexError:
-        g=Group()
+        g = Group()
         g.name = "manager"
         g.save()
         manager = g
@@ -59,7 +60,7 @@ def user_list(request):
     try:
         admin = Group.objects.filter(name="admin")[0]
     except IndexError:
-        g=Group()
+        g = Group()
         g.name = "admin"
         g.save()
         admin = g
@@ -67,44 +68,48 @@ def user_list(request):
     if request.method == 'GET':
         user = request.user
         if user == None:
-            return Response({"detail":"Authentication failed"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"detail": "Authentication failed"}, status=status.HTTP_401_UNAUTHORIZED)
         if len(user.groups.filter(name="admin")) + len(user.groups.filter(name="manager")) == 0:
             users = User.objects.filter(pk=user.id)
         else:
             users = User.objects.all()
 
-        serializer = UserSerializer(users, many=True, context={"request":request})
+        serializer = UserSerializer(users, many=True, context={"request": request})
         return Response(serializer.data)
 
     elif request.method == 'POST':
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             errors = request_post_errors(request)
-            if "email" not in request.data or len(request.data["email"])==0:
+            if "email" not in request.data or len(request.data["email"]) == 0:
                 errors["email"] = ["Field is required"]
             if len(errors) > 0:
                 return Response(data=errors,
                                 status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
             user = User.objects.filter(username=request.data["username"])[0]
+            user1 = request.user
             t, created = Profile.objects.get_or_create(pk=user.id, user_id=user.id)
             if "password" in request.data:
                 user.set_password(request.data["password"])
                 user.save()
             if "admin" in request.data:
-                if len(user.groups.filter(name="admin")) == 1 and request.data["admin"] == 0:
+                if len(user.groups.filter(name="admin")) == 1 and not request.data["admin"]:
                     user.groups.remove(admin)
-                if len(user.groups.filter(name="admin")) == 0 and request.data["admin"] == 1:
+                if len(user.groups.filter(name="admin")) == 0 and request.data["admin"]:
                     user.groups.add(admin)
                 user.save()
             if "manager" in request.data:
-                if len(user.groups.filter(name="manager")) == 1 and request.data["manager"] == 0:
+                if len(user.groups.filter(name="manager")) == 1 and not request.data["manager"]:
                     user.groups.remove(manager)
-                if len(user.groups.filter(name="manager")) == 0 and request.data["manager"] == 1:
+                if len(user.groups.filter(name="manager")) == 0 and request.data["manager"]:
                     user.groups.add(manager)
-                if request.data["manager"] not in [0,1]:
-                    errors["manager"] = ["Should be 0 or 1"]
+                if request.data["manager"] not in [True, False]:
+                    errors["manager"] = ["Should be true or false"]
                 user.save()
+            if "invited" in request.data:
+                if len(user1.groups.filter(name="admin")) == 1 and request.data("invited"):
+                    t.invited = True
             if "calories" in request.data:
                 t.calories = request.data["calories"]
             t.save()
@@ -122,7 +127,7 @@ def user_detail(request, pk):
     try:
         manager = Group.objects.filter(name="manager")[0]
     except IndexError:
-        g=Group()
+        g = Group()
         g.name = "manager"
         g.save()
         manager = g
@@ -130,7 +135,7 @@ def user_detail(request, pk):
     try:
         admin = Group.objects.filter(name="admin")[0]
     except IndexError:
-        g=Group()
+        g = Group()
         g.name = "admin"
         g.save()
         admin = g
@@ -140,10 +145,10 @@ def user_detail(request, pk):
         return Response(status=status.HTTP_401_UNAUTHORIZED)
 
     if len(user1.groups.filter(name="admin")) + len(user1.groups.filter(name="manager")) == 0 and user != user1:
-        return Response({"detail":"You need admin or manager rights to do that"},status=status.HTTP_401_UNAUTHORIZED)
+        return Response({"detail": "You need admin or manager rights to do that"}, status=status.HTTP_401_UNAUTHORIZED)
 
     if len(user.groups.filter(name="admin")) and user != user1:
-        return Response({"detail":"Admin can only be changed by himself"},status=status.HTTP_401_UNAUTHORIZED)
+        return Response({"detail": "Admin can only be changed by himself"}, status=status.HTTP_401_UNAUTHORIZED)
 
     if request.method == 'GET':
         serializer = UserSerializer(user)
@@ -157,14 +162,14 @@ def user_detail(request, pk):
             if len(errors) > 0:
                 return Response(data=errors,
                                 status=status.HTTP_400_BAD_REQUEST)
-            print("saving...",errors)
+            print("saving...", errors)
             serializer.save()
             user = User.objects.get(pk=pk)
             if "password" in request.data:
                 user.set_password(request.data["password"])
                 user.save()
             if "admin" in request.data:
-                if len(user1.groups.filter(name="admin"))==0 and user != user1:
+                if len(user1.groups.filter(name="admin")) == 0 and user != user1:
                     return Response({"detail": "Admin rights can be set only by admins"},
                                     status=status.HTTP_401_UNAUTHORIZED)
                 if len(user.groups.filter(name="admin")) == 1 and request.data["admin"] == 0:
@@ -173,15 +178,15 @@ def user_detail(request, pk):
                     user.groups.add(admin)
                 user.save()
             if "manager" in request.data:
-                if len(user1.groups.filter(name="admin"))==0 and user != user1:
+                if len(user1.groups.filter(name="admin")) == 0 and user != user1:
                     return Response({"detail": "Manager rights can be set only by admins"},
                                     status=status.HTTP_401_UNAUTHORIZED)
-                if len(user.groups.filter(name="manager")) == 1 and request.data["manager"] == 0:
+                if len(user.groups.filter(name="manager")) == 1 and request.data["manager"] == False:
                     user.groups.remove(manager)
-                elif len(user.groups.filter(name="manager")) == 0 and request.data["manager"] == 1:
+                elif len(user.groups.filter(name="manager")) == 0 and request.data["manager"] == True:
                     user.groups.add(manager)
                 user.save()
-            t,created = Profile.objects.get_or_create(pk=pk, user_id=user.id)
+            t, created = Profile.objects.get_or_create(pk=pk, user_id=user.id)
             if "blocked" in request.data:
                 if request.data["blocked"] == False:
                     t.blocked = False
@@ -204,7 +209,7 @@ def verify(request, user_id, verification_code):
         profile = Profile.objects.get(user=user)
 
         if profile.verification_code == verification_code:
-            profile.verified=True
+            profile.verified = True
             profile.save()
             jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
             jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -218,7 +223,7 @@ def verify(request, user_id, verification_code):
         context = {"message": "We are sorry, verification code is wrong!",
                    "user": user,
                    "profile": profile,
-                   "token":""}
+                   "token": ""}
         return render(request, "verify.html", context)
     except:
         return Response({"detail": "Something went wrong!"}, status=status.HTTP_400_BAD_REQUEST)
@@ -232,4 +237,4 @@ def send_code(request, username):
     except:
         return Response({"detail": "User not found!"}, status=status.HTTP_400_BAD_REQUEST)
     send_verification_email(profile)
-    return Response({"detail": "Verification code is sent to "+user.email}, status=status.HTTP_200_OK)
+    return Response({"detail": "Verification code is sent to " + user.email}, status=status.HTTP_200_OK)
