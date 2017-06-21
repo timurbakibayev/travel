@@ -162,4 +162,3 @@ class FiltersTests(TransactionTestCase):
                               content_type="application/json",
                               HTTP_AUTHORIZATION="JWT " + tokens["admin"])
         self.assertEqual(len(json.loads(response.content.decode("UTF-8"), "UTF-8")), 5, "Now api")
-        
