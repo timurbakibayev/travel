@@ -25,9 +25,9 @@ class Meal(models.Model):
         ordering = ["date"]
 
     def save(self, *args, **kwargs):
-        if self.date > str(datetime.today().date()):
+        if str(self.date) > str(datetime.today().date()):
             raise Exception("The date should not be in the future!")
-        if self.date == str(datetime.today().date()) and self.time > str(datetime.today().time()):
+        if str(self.date) == str(datetime.today().date()) and str(self.time) > str(datetime.today().time()):
             raise Exception("The time should not be in the future!")
 
 

@@ -126,3 +126,32 @@ class UsersTests(TransactionTestCase):
                               content_type="application/json")
         user_list = json.loads(response.content.decode("UTF-8"), "UTF-8")
         self.assertEqual(len(user_list), 5, "All five users ")
+
+        # let's block user2 by entering wrong password 3 times
+        for i in range(3):
+            client.post("/auth-api/",
+                                   data=json.dumps({'username': "user2", 'password': "passpass"}),
+                                   content_type="application/json")
+
+        response = client.post("/auth-api/",
+                               data=json.dumps({'username': "user2", 'password': "user2"}),
+                               content_type="application/json")
+        self.assertEqual(json.loads(response.content.decode("UTF-8"), "UTF-8")['non_field_errors'][0],
+                         "This user is blocked", "The user should have been blocked")
+
+        # let's unblock user1 by user1 (should fail)
+        response = client.put("/users/" + str(User.objects.get(username="user2").id) + "/",
+                              HTTP_AUTHORIZATION="JWT " + tokens["user2"],
+                              data=json.dumps({"blocked": False}),
+                              content_type="application/json")
+
+        self.assertEqual(response.status_code, 401, "User1 should fail unblocking himself")
+
+        response = client.put("/users/" + str(User.objects.get(username="user2").id) + "/",
+                              HTTP_AUTHORIZATION="JWT " + tokens["admin"],
+                              data=json.dumps({"blocked": False}),
+                              content_type="application/json")
+
+        self.assertTrue(not json.loads(response.content.decode("UTF-8"), "UTF-8")["blocked"],
+                        "Admin should be able to unblock user1")
+
