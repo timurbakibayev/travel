@@ -263,7 +263,7 @@ function getMeals() {
                     r[++j] = '<tr>';
                 r[++j] = '<td>' + data[key]["text"].replace(/<(?:.|\n)*?>/gm, '') + "</td>";
                 r[++j] = '<td>' + data[key]["date"] + "</td>";
-                r[++j] = '<td>' + data[key]["time"] + "</td>";
+                r[++j] = '<td>' + data[key]["time"].substring(0,5) + "</td>";
                 r[++j] = '<td>' + data[key]["calories"] + "</td>";
                 c += data[key]["calories"];
                 r[++j] = '<td><a href="#" onclick="editMeal(' + data[key]["id"] + ')">Edit 🖉</a> ' +

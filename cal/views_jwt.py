@@ -32,13 +32,13 @@ def auth_api(request):
                     errors["non_field_errors"]=["Unable to log in with provided credentials."]
                     if len(User.objects.filter(username=username)) > 0:
                         user = User.objects.get(username=username)
-                        profile, created = Profile.objects.get_or_create(pk=user.id, user_id=user.id)
+                        profile, created = Profile.objects.get_or_create(user_id=user.id)
                         profile.fails += 1
                         if profile.fails >= 3:
                             profile.blocked = True
                         profile.save()
                 else:
-                    profile,created = Profile.objects.get_or_create(pk=user.id, user_id=user.id)
+                    profile,created = Profile.objects.get_or_create(user_id=user.id)
                     if not profile.verified:
                         errors["non_field_errors"] = ["User's email is not verified"]
                     elif profile.blocked:
@@ -92,13 +92,13 @@ def auth_web(request):
                     errors["non_field_errors"]=["Unable to log in with provided credentials."]
                     if len(User.objects.filter(username=username)) > 0:
                         user = User.objects.get(username=username)
-                        profile, created = Profile.objects.get_or_create(pk=user.id, user_id=user.id)
+                        profile, created = Profile.objects.get_or_create(user_id=user.id)
                         profile.fails += 1
                         if profile.fails >= 3:
                             profile.blocked = True
                         profile.save()
                 else:
-                    profile,created = Profile.objects.get_or_create(pk=user.id, user_id=user.id)
+                    profile,created = Profile.objects.get_or_create(user_id=user.id)
                     if not profile.verified:
                         errors["non_field_errors"] = ["User's email is not verified"]
                     elif profile.blocked:

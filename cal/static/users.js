@@ -232,19 +232,20 @@ function register() {
     console.log(responseObject);
       if (this.status == 201) {
           resultSuccess.innerHTML = "Nice! You are in! Now please verify your email!";
-      } else
+      } else {
           resultSuccess.innerHTML = "";
           if (responseObject.detail)
               resultError.innerHTML = responseObject.detail;
           else {
               resultError.innerHTML = "";
-              for (var k in responseObject){
-                    if (responseObject.hasOwnProperty(k)) {
-                         console.log(k + ": " + responseObject[k]);
-                         resultError.innerHTML += k + ": " + responseObject[k] + "<br>";
-                    }
-                }
+              for (var k in responseObject) {
+                  if (responseObject.hasOwnProperty(k)) {
+                      console.log(k + ": " + responseObject[k]);
+                      resultError.innerHTML += k + ": " + responseObject[k] + "<br>";
+                  }
+              }
           }
+      }
   });
 
   var sendObject = JSON.stringify({username: user, password: password, email: email});

@@ -265,7 +265,8 @@ def invite(request, invitation_id):
     try:
         invitation = Invitation.objects.get(pk=invitation_id)
     except:
-        return Response({"detail": "Invitation not found!"}, status=status.HTTP_404_NOT_FOUND)
+        context = {"invitation": None, "token": "", "messages": "Sorry, invitation is not valid."}
+        return render(request, "invite.html", context)
     if request.method == "POST":
         messages = ""
         token = ""
@@ -285,17 +286,15 @@ def invite(request, invitation_id):
             try:
                 user = User()
                 user.username = data["username"]
-                user.email = invitation.email
                 user.set_password(data["password"])
                 user.save()
-                profile = Profile.objects.get(user=user)
-                profile.invited = True
-                profile.verified = True
-                profile.save()
+                user.email = invitation.email
+                user.save()
                 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
                 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
                 payload = jwt_payload_handler(user)
                 token = jwt_encode_handler(payload)
+                invitation.delete()
             except Exception as e:
                 messages = str(e)
         context = {"invitation": invitation, "token": token, "user": user, "messages": messages}

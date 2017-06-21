@@ -72,6 +72,9 @@ function load_all() {
     getUsers();
 }
 function onLoad() {
+    $("#new_text").autocomplete({
+        source: availableTags
+    });
     $('#login-form-link').click(function (e) {
         $("#login-form").delay(100).fadeIn(100);
         $("#register-form").fadeOut(100);
@@ -143,20 +146,24 @@ function onLoad() {
                 console.log(responseObject);
                 if (this.status == 201) {
                     alert("The user is successfully invited!");
-                }
-                if (responseObject.detail)
-                    alert(responseObject.detail);
-                else {
-                    errors = "";
-                    for (var k in responseObject) {
-                        if (responseObject.hasOwnProperty(k)) {
-                            console.log(k + ": " + responseObject[k]);
-                            errors += k + ": " + responseObject[k] + "\n";
+                } else {
+                    if (responseObject.detail)
+                        alert(responseObject.detail);
+                    else {
+                        errors = "";
+                        for (var k in responseObject) {
+                            if (responseObject.hasOwnProperty(k)) {
+                                console.log(k + ": " + responseObject[k]);
+                                errors += k + ": " + responseObject[k] + "\n";
+                            }
                         }
+                        alert("errors:\n" + errors);
                     }
-                    alert("errors:\n" + errors);
                 }
-            } catch (e) {alert(e)};
+            } catch (e) {
+                alert(e)
+            }
+            ;
         });
 
         var sendObject = JSON.stringify({email: email});

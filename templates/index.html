@@ -9,9 +9,28 @@
     <link rel="stylesheet" href="{% static "bootstrap-theme.min.css" %}">
     <script src='https://www.google.com/recaptcha/api.js'></script>
     <script type="text/javascript" src="{% static "jquery-git.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "jquery-ui.min.js" %}"></script>
+    <link rel="stylesheet" href="{% static "jquery-ui.min.css" %}">
 
     <link rel="stylesheet" type="text/css" href="{% static "login.css" %}">
     <script src="{% static "bootstrap.min.js" %}"></script>
+    <style>
+        .ui-autocomplete {
+            position: absolute;
+            border-radius: 3px;
+            top: 0;
+            left: 0;
+            cursor: default;
+            min-width: 100px;
+            max-width: 100%;
+            max-height: 100px;
+            background: #ffffff;
+            color: #000000;
+            z-index: 9999999 !important;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+    </style>
 </head>
 <body onload="onLoad()">
 <nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
@@ -122,7 +141,8 @@
                                         <input type="password" name="password" id="password" class="form-control"
                                                placeholder="Password">
                                     </div>
-                                    <div style="align-content: center" class="g-recaptcha" data-sitekey="6LfF5SQUAAAAALyOaSJNivE1rbCOti7lMwmF85v-"></div>
+                                    <div style="align-content: center" class="g-recaptcha"
+                                         data-sitekey="6LfF5SQUAAAAALyOaSJNivE1rbCOti7lMwmF85v-"></div>
                                     <div id="login-error-div"
                                          style="margin-bottom: 10px; text-align: center; color: red"></div>
                                     <div class="form-group">
@@ -273,9 +293,9 @@
             <form id="invite_form">
                 <div class="modal-body">
                     <div class="input-group">
-                        <label for="edit_text">User's email(</label>
+                        <label for="edit_text">User's email:</label>
                         <input type="email" name="invite_email" id="invite_email" class="form-control"
-                               placeholder="New Meal">
+                               placeholder="New email">
                     </div>
 
                     <div class="modal-footer">
@@ -290,7 +310,11 @@
     <!-- /.modal-dialog -->
 </div>
 
-
+<script language="javascript">
+        var availableTags = [
+            {% for item in autocomplete %}"{{ item }}",{% endfor %}
+        ];
+</script>
 <script src="{% static "allscripts.js" %}"></script>
 <script src="{% static "meals.js" %}"></script>
 <script src="{% static "users.js" %}"></script>

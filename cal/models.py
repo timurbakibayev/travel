@@ -2,8 +2,11 @@ import random
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.datetime_safe import datetime
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
+from django.utils.datetime_safe import date
+
 from cal.emails import send_verification_email
 from cal.emails import send_invitation_email
 from calories import settings
@@ -21,6 +24,14 @@ class Meal(models.Model):
     class Meta:
         ordering = ["date"]
 
+    def save(self, *args, **kwargs):
+        if self.date > str(datetime.today().date()):
+            raise Exception("The date should not be in the future!")
+        if self.date == str(datetime.today().date()) and self.time > str(datetime.today().time()):
+            raise Exception("The time should not be in the future!")
+
+
+        super(Meal, self).save(*args, **kwargs)
 
 class Invitation(models.Model):
     email = models.EmailField(max_length=100)
@@ -29,6 +40,7 @@ class Invitation(models.Model):
         return self.email
 
     def invitation_link(self):
+        print("Invitation link:", settings.GLOBAL_URL + "invite/"+str(self.id)+"/")
         return settings.GLOBAL_URL + "invite/"+str(self.id)+"/"
 
 
@@ -45,15 +57,17 @@ class Profile(models.Model):
         return "profile for " + self.user.username
 
     def verification_link(self):
+        print("Verification link:", settings.GLOBAL_URL + "verify/"+str(self.user.id)+"/"+self.verification_code)
         return settings.GLOBAL_URL + "verify/"+str(self.user.id)+"/"+self.verification_code
 
 @receiver(post_save, sender=User)
 def create_profile(sender, instance, created, **kwargs):
     """Create a matching profile whenever a user object is created."""
     if created:
-        profile, new = Profile.objects.get_or_create(pk=instance.id, user=instance)
-        print("Created a user:", profile)
+        profile, new = Profile.objects.get_or_create(user=instance)
+        #print("Created a user:", profile)
         profile.verification_code = ''.join(random.choice('abc123') for _ in range(10))
+        profile.invited = len(instance.email)==0
         profile.verified = profile.invited
         profile.save()
         if not profile.invited:

@@ -13,7 +13,13 @@ def login(request):
     return render(request, "login.html", context)
 
 def index(request):
-    context = {"today": datetime.now()}
+    autocomplete = []
+    autocomplete_upper = []
+    for i in Meal.objects.all():
+        if i.text.upper() not in autocomplete_upper and len(autocomplete) < 150:
+            autocomplete.append(i.text)
+            autocomplete_upper.append(i.text.upper())
+    context = {"today": datetime.now(), "autocomplete" : autocomplete}
     return render(request, "index.html", context)
 
 @api_view(['GET', 'POST'])
